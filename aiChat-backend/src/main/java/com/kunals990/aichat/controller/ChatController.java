@@ -38,7 +38,7 @@ public class ChatController {
     }
 
     @PostMapping("/session")
-    ResponseEntity<?> sessionController(@CookieValue(value = "access_token", required = false) String accessToken) {
+    ResponseEntity<?> createSession(@CookieValue(value = "access_token", required = false) String accessToken) {
 
         String email = jwtUtil.extractEmail(accessToken);
         System.out.println(email);

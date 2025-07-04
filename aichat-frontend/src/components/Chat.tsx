@@ -5,6 +5,7 @@ import { getStoredIdToken } from '@/utils/auth'
 import LoginPopup from './LoginPopup'
 import Cookies from 'js-cookie'
 import { useChatStore } from '@/store/chatStore'
+import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 
 interface Message {
   id: string
@@ -22,6 +23,7 @@ interface LLMOption {
 const Chat = () => {
   const router = useRouter()
   const messages = useChatStore((state) => state.messages);
+  const addMessage = useChatStore((state) => state.addMessage);
   const setMessages = useChatStore((state) => state.setMessages);
   const [inputMessage, setInputMessage] = useState('')
   const [selectedLLM, setSelectedLLM] = useState('gemini')
@@ -124,8 +126,8 @@ const Chat = () => {
       timestamp: new Date()
     }
 
-    // setMessages(prev => [...prev, userMessage])
-    setMessages([...messages, userMessage]);
+    // Add user message to store
+    addMessage(userMessage);
     setInputMessage('')
     setIsLoading(true)
 
@@ -175,8 +177,9 @@ const Chat = () => {
         role: 'assistant',
         timestamp: new Date()
       }
-      setMessages([...messages, assistantMessage]);
-      // setMessages(prev => [...prev, assistantMessage])
+      
+      // Add assistant message to store
+      addMessage(assistantMessage);
     } catch (error) {
       console.error('Error sending message:', error)
       const errorMessage: Message = {
@@ -185,8 +188,9 @@ const Chat = () => {
         role: 'assistant',
         timestamp: new Date()
       }
-      setMessages([...messages, errorMessage]);
-      // setMessages(prev => [...prev, errorMessage])
+      
+      // Add error message to store
+      addMessage(errorMessage);
     } finally {
       setIsLoading(false)
     }
@@ -202,7 +206,7 @@ const Chat = () => {
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto w-full p-4">
         <div className="max-w-4xl mx-auto space-y-4">
           {messages.length === 0 ? (
             <div className="text-center py-12">
@@ -242,15 +246,21 @@ const Chat = () => {
                 className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                  className={`max-w-[85%] px-4 py-3 rounded-lg ${
                     message.role === 'user'
                       ? 'bg-blue-500 text-white'
                       : 'bg-white text-gray-900 border border-gray-200'
                   }`}
                 >
-                  <div className="whitespace-pre-wrap">{message.content}</div>
+                  <div className="w-full">
+                    {message.role === 'user' ? (
+                      <div className="whitespace-pre-wrap break-words">{message.content}</div>
+                    ) : (
+                      <MarkdownRenderer content={message.content} />
+                    )}
+                  </div>
                   <div
-                    className={`text-xs mt-1 ${
+                    className={`text-xs mt-2 ${
                       message.role === 'user' ? 'text-blue-100' : 'text-gray-500'
                     }`}
                   >

@@ -28,7 +28,7 @@ interface Session {
 }
 
 export function AppSidebar() {
-   const { sessions,setSessions } = useSessionStore.getState();
+  const { sessions, setSessions, clearSessions } = useSessionStore();
   const [loading, setLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userInfo, setUserInfo] = useState<any>(null);
@@ -61,8 +61,14 @@ export function AppSidebar() {
     setLoading(true);
     try {
       const raw = await getSessions();
+      
+      if (!raw) {
+        console.log('No sessions returned from API');
+        clearSessions();
+        return;
+      }
 
-        const data = Array.isArray(raw) ? raw : [raw]; 
+      const data = Array.isArray(raw) ? raw : [raw]; 
       const parsed = (data ?? []).map((session: any) => ({
         ...session,
         timestamp: new Date(
@@ -75,11 +81,13 @@ export function AppSidebar() {
             Math.floor(session.timestamp[6] / 1000000)
         ).toISOString()
         }));
-    //   console.log(data);
+      
+      // Use the store's setSessions method
       setSessions(parsed);
+      console.log('Sessions updated:', parsed);
     } catch (error) {
       console.error('Error fetching sessions:', error);
-      useSessionStore.getState().clearSessions(); 
+      clearSessions(); 
     } finally {
       setLoading(false);
     }
@@ -116,6 +124,7 @@ export function AppSidebar() {
       router.push('/');
       
       // Refresh sessions list to show updated recent chats
+
       await fetchSessions();
       
     } catch (error) {
@@ -188,49 +197,51 @@ export function AppSidebar() {
         </SidebarGroup>
 
         {/* Chat Sessions */}
-        <SidebarGroup>
+        <SidebarGroup className="flex-1 overflow-hidden">
           <SidebarGroupLabel>Recent Chats</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {!isAuthenticated ? (
-                <SidebarMenuItem>
-                  <SidebarMenuButton disabled>
-                    <User2 />
-                    Please login to view sessions
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ) : loading ? (
-                <SidebarMenuItem>
-                  <SidebarMenuButton disabled>
-                    <Search className="animate-spin" />
-                    Loading sessions...
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ) : sessions && sessions.length > 0 ? (
-                sessions.slice(0, 5).map((session) => (
-                  <SidebarMenuItem key={session.id}>
-                    <SidebarMenuButton asChild>
-                      <a href={`/?sessionId=${session.id}`} className="flex flex-col items-start">
-                        <div className="flex items-center gap-2 w-full">
-                          <MessageSquare className="h-4 w-4" />
-                          <span className="truncate">{session.sessionName}</span>
-                        </div>
-                        <span className="text-xs text-muted-foreground ml-6">
-                          {new Date(session.timestamp).toLocaleDateString()}
-                        </span>
-                      </a>
+          <SidebarGroupContent className="flex-1 overflow-hidden">
+            <div className="max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+              <SidebarMenu>
+                {!isAuthenticated ? (
+                  <SidebarMenuItem>
+                    <SidebarMenuButton disabled>
+                      <User2 />
+                      Please login to view sessions
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                ))
-              ) : (
-                <SidebarMenuItem>
-                  <SidebarMenuButton disabled>
-                    <MessageSquare />
-                    No sessions found
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
-            </SidebarMenu>
+                ) : loading ? (
+                  <SidebarMenuItem>
+                    <SidebarMenuButton disabled>
+                      <Search className="animate-spin" />
+                      Loading sessions...
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ) : sessions && sessions.length > 0 ? (
+                  sessions.map((session) => (
+                    <SidebarMenuItem key={session.id}>
+                      <SidebarMenuButton asChild>
+                        <a href={`/?sessionId=${session.id}`} className="flex flex-col items-start">
+                          <div className="flex items-center gap-2 w-full">
+                            <MessageSquare className="h-4 w-4" />
+                            <span className="truncate">{session.sessionName}</span>
+                          </div>
+                          <span className="text-xs text-muted-foreground ml-6">
+                            {new Date(session.timestamp).toLocaleDateString()}
+                          </span>
+                        </a>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))
+                ) : (
+                  <SidebarMenuItem>
+                    <SidebarMenuButton disabled>
+                      <MessageSquare />
+                      No sessions found
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )}
+              </SidebarMenu>
+            </div>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>

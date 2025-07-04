@@ -23,8 +23,14 @@
     "next-auth": "^4.24.11",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-markdown": "^8.0.7",
+    "react-syntax-highlighter": "^15.6.1",
+    "rehype-highlight": "^7.0.2",
+    "remark-gfm": "^3.0.1",
+    "remark-parse": "^11.0.0",
     "styled-components": "^6.1.19",
     "tailwind-merge": "^3.3.1",
+    "unified": "^11.0.5",
     "zustand": "^5.0.6"
   },
   "devDependencies": {
@@ -34,6 +40,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "eslint": "^9",
     "eslint-config-next": "15.3.4",
     "tailwindcss": "^4",
