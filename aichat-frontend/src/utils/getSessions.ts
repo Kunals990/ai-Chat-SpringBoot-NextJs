@@ -1,0 +1,26 @@
+
+
+export async function getSessions(): Promise<any[] | null> {
+  try {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+    const response = await fetch(`${backendUrl}/chat/getSession`, {
+      method: 'POST',
+      credentials: 'include', 
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      console.error('Failed to fetch sessions:', response.statusText);
+      return null;
+    }
+
+    const data = await response.json();
+    // console.log(data);
+    return data; // array of session objects
+  } catch (error) {
+    console.error('Error fetching sessions:', error);
+    return null;
+  }
+}

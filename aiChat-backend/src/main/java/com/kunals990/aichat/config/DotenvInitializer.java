@@ -11,9 +11,6 @@ public class DotenvInitializer implements ApplicationContextInitializer<Configur
         dotenv.entries().forEach(entry ->
                 System.setProperty(entry.getKey(), entry.getValue())
         );
-        System.out.println(">>> DotenvInitializer loaded ✅");
-        System.out.println(">>> OPENAI_API_KEY = " + System.getProperty("OPENAI_API_KEY"));
-        System.out.println(">>> JWT_SECRET from DotenvInitializer: " + System.getProperty("JWT_SECRET"));
 
     }
 }

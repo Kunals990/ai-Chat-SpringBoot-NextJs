@@ -1,13 +1,17 @@
-import Chat from "@/components/Chat";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import Image from "next/image";
+"use client";
+import Chat from '@/components/Chat';
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
+import React from 'react';
 
 export default function Home() {
   return (
-    <main>
-      <ProtectedRoute>
+    <SidebarProvider defaultOpen={true}>
+      <AppSidebar />
+      <main className="flex-1">
+        <SidebarTrigger />
         <Chat />
-      </ProtectedRoute>
-    </main>
+      </main>
+    </SidebarProvider>
   );
 }

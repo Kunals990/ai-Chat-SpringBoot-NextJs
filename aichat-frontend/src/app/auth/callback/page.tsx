@@ -59,7 +59,7 @@ const CallbackPage = () => {
             setStatus('Frontend auth successful, but backend connection failed');
           }
           console.log("before router");
-          router.push("/chat");
+          router.push("/");
           console.log("after router");
         } else {
           setStatus('Authentication failed');

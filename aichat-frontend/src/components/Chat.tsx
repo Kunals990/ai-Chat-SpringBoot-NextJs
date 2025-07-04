@@ -1,8 +1,10 @@
 "use client"
 import React, { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { getStoredIdToken, getUserInfo, logout } from '@/utils/auth'
-import Cookies from 'js-cookie';
+import { getStoredIdToken } from '@/utils/auth'
+import LoginPopup from './LoginPopup'
+import Cookies from 'js-cookie'
+import { useChatStore } from '@/store/chatStore'
 
 interface Message {
   id: string
@@ -19,64 +21,99 @@ interface LLMOption {
 
 const Chat = () => {
   const router = useRouter()
-  const [messages, setMessages] = useState<Message[]>([])
+  const messages = useChatStore((state) => state.messages);
+  const setMessages = useChatStore((state) => state.setMessages);
   const [inputMessage, setInputMessage] = useState('')
   const [selectedLLM, setSelectedLLM] = useState('gemini')
   const [isLoading, setIsLoading] = useState(false)
-  const [userInfo, setUserInfo] = useState<any>(null)
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
+  const [showLoginPopup, setShowLoginPopup] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const llmOptions: LLMOption[] = [
-    { value: 'gemini', label: 'Google Gemini', icon: '🤖' },
+    { value: 'gemini', label: 'Gemini 2.5 Flash', icon: '🤖' },
     { value: 'openai', label: 'OpenAI GPT', icon: '⚡' }
   ]
 
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080/api';
 
+  // Check authentication status
   useEffect(() => {
-    const user = getUserInfo()
-    // const session_id = getSessionId();
-    setUserInfo(user)
-  }, [])
+    const checkAuth = () => {
+      const token = Cookies.get('access_token');
+      setIsAuthenticated(!!token);
+    };
+
+    checkAuth();
+    
+    // Check periodically in case user logs in/out in another tab
+    const interval = setInterval(checkAuth, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Check for session changes and clear messages if needed
+  useEffect(() => {
+    const handleNewChatSession = () => {
+      // Clear messages when new chat session is created
+      setMessages([]);
+      setInputMessage('');
+    };
+
+    // Listen for new chat session event from sidebar
+    window.addEventListener('newChatSession', handleNewChatSession);
+    
+    return () => {
+      window.removeEventListener('newChatSession', handleNewChatSession);
+    };
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
+  const createNewSession = async () => {
+    try {
+      const response = await fetch(`${backendUrl}/chat/session`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const sessionId = data.id;
+        const session_name = data.sessionName;
+        localStorage.setItem('session_id', sessionId);
+        return sessionId;
+      } else {
+        throw new Error('Failed to create session');
+      }
+    } catch (error) {
+      console.error("Failed to get session id: ", error);
+      throw new Error("Failed to get session id");
+    }
+  };
+
   useEffect(() => {
     scrollToBottom()
   }, [messages])
 
-  const handleLogout = () => {
-    logout();
-    router.push('/login')
-  }
-
   const sendMessage = async () => {
-
     if (!inputMessage.trim() || isLoading) return
+
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      setShowLoginPopup(true)
+      return
+    }
 
     //check for session id -> if not create one
 
     const session_id = localStorage.getItem('session_id');
     if(!session_id){
-      try{
-        const response = await fetch(`${backendUrl}/chat/session`,{
-          method:"POST",
-          credentials:"include",
-          headers: {
-          'Content-Type': 'application/json',
-        },
-        })
-
-        const data = await response.json();
-        const sessionId = data.id;
-        const session_name = data.sessionName;
-        localStorage.setItem('session_id',sessionId);
-      }catch(error){
-        console.error("Failed to get session id: ",error);
-        throw new Error("Failed to get session id");
-      }
+      await createNewSession();
     }
 
 
@@ -87,7 +124,8 @@ const Chat = () => {
       timestamp: new Date()
     }
 
-    setMessages(prev => [...prev, userMessage])
+    // setMessages(prev => [...prev, userMessage])
+    setMessages([...messages, userMessage]);
     setInputMessage('')
     setIsLoading(true)
 
@@ -137,8 +175,8 @@ const Chat = () => {
         role: 'assistant',
         timestamp: new Date()
       }
-
-      setMessages(prev => [...prev, assistantMessage])
+      setMessages([...messages, assistantMessage]);
+      // setMessages(prev => [...prev, assistantMessage])
     } catch (error) {
       console.error('Error sending message:', error)
       const errorMessage: Message = {
@@ -147,7 +185,8 @@ const Chat = () => {
         role: 'assistant',
         timestamp: new Date()
       }
-      setMessages(prev => [...prev, errorMessage])
+      setMessages([...messages, errorMessage]);
+      // setMessages(prev => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
     }
@@ -162,60 +201,6 @@ const Chat = () => {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-4 shadow-sm">
-        <div className="flex items-center justify-between max-w-4xl mx-auto">
-          <h1 className="text-2xl font-bold text-gray-900">aiChat</h1>
-          
-          <div className="flex items-center space-x-4">
-            {/* LLM Selector */}
-            <div className="flex items-center space-x-2 text-black">
-              <label htmlFor="llm-select" className="text-sm font-medium text-gray-700">
-                AI Model:
-              </label>
-              <select
-                id="llm-select"
-                value={selectedLLM}
-                onChange={(e) => setSelectedLLM(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                {llmOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.icon} {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* User Info and Logout */}
-            <div className="flex items-center space-x-3">
-              {userInfo && (
-                <div className="flex items-center space-x-2">
-                  {userInfo.picture && (
-                    <img 
-                      src={userInfo.picture} 
-                      alt={userInfo.name} 
-                      className="w-8 h-8 rounded-full"
-                    />
-                  )}
-                  <span className="text-sm text-gray-700">{userInfo.name}</span>
-                </div>
-              )}
-              <button
-                onClick={handleLogout}
-                className="text-sm text-red-600 hover:text-red-800 font-medium"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div>
-        
-      </div>
-
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4">
         <div className="max-w-4xl mx-auto space-y-4">
@@ -225,9 +210,30 @@ const Chat = () => {
               <h3 className="text-lg font-medium text-gray-900 mb-2">
                 Welcome to aiChat!
               </h3>
-              <p className="text-gray-600">
-                Start a conversation with your AI assistant. Choose your preferred model and ask anything!
-              </p>
+              {isAuthenticated ? (
+                <p className="text-gray-600">
+                  Start a conversation with your AI assistant. Choose your preferred model and ask anything!
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-gray-600">
+                    Experience AI-powered conversations with multiple language models.
+                  </p>
+                  <div className="inline-block bg-blue-50 border border-blue-200 rounded-lg px-4 py-2">
+                    <p className="text-blue-700 text-sm">
+                      🔒 Please login to start chatting with AI assistants
+                    </p>
+                  </div>
+                  <div>
+                    <button
+                      onClick={() => setShowLoginPopup(true)}
+                      className="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium text-sm"
+                    >
+                      Login to Get Started
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             messages.map((message) => (
@@ -275,36 +281,79 @@ const Chat = () => {
       </div>
 
       {/* Input Area */}
-      <div className="bg-white border-t border-gray-200 p-4 text-black">
+      <div className="bg-gray-50 p-4">
         <div className="max-w-4xl mx-auto">
-          <div className="flex space-x-4">
-            <div className="flex-1 relative">
-              <textarea
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Type your message here..."
-                rows={1}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                disabled={isLoading}
-              />
-            </div>
-            <button
-              onClick={sendMessage}
-              disabled={!inputMessage.trim() || isLoading}
-              className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {isLoading ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              ) : (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+          <div className="bg-gray-800 rounded-2xl p-4 shadow-lg">
+            <div className="flex items-center space-x-4">
+              {/* Model Selector */}
+              <div className="flex-shrink-0">
+                <select
+                  value={selectedLLM}
+                  onChange={(e) => setSelectedLLM(e.target.value)}
+                  disabled={!isAuthenticated}
+                  className="bg-gray-700 text-white px-3 py-2 rounded-lg text-sm border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {llmOptions.map((option) => (
+                    <option key={option.value} value={option.value} className="bg-gray-700">
+                      {option.icon} {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              {/* Search Icon */}
+              <div className="flex-shrink-0">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-              )}
-            </button>
+              </div>
+              
+              {/* Text Input */}
+              <div className="flex-1">
+                <textarea
+                  value={inputMessage}
+                  onChange={(e) => {
+                    setInputMessage(e.target.value)
+                    // Auto-resize
+                    e.target.style.height = 'auto'
+                    e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px'
+                  }}
+                  onKeyPress={handleKeyPress}
+                  placeholder={isAuthenticated ? "Type your message here..." : "Please login to start chatting..."}
+                  rows={1}
+                  className="w-full bg-transparent text-white placeholder-gray-400 border-none outline-none resize-none text-base py-2 overflow-hidden"
+                  disabled={isLoading || !isAuthenticated}
+                  style={{ minHeight: '40px', maxHeight: '120px' }}
+                />
+              </div>
+              
+              {/* Send Button */}
+              <div className="flex-shrink-0">
+                <button
+                  onClick={sendMessage}
+                  disabled={!inputMessage.trim() || isLoading || !isAuthenticated}
+                  className="flex items-center justify-center w-10 h-10 rounded-lg bg-white text-gray-800 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  title={!isAuthenticated ? "Please login to send messages" : "Send message"}
+                >
+                  {isLoading ? (
+                    <div className="w-4 h-4 border-2 border-gray-800 border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Login Popup */}
+      <LoginPopup 
+        isOpen={showLoginPopup} 
+        onClose={() => setShowLoginPopup(false)} 
+      />
     </div>
   )
 }

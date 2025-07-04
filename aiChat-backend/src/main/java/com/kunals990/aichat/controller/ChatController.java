@@ -2,6 +2,8 @@ package com.kunals990.aichat.controller;
 
 import com.kunals990.aichat.entity.Chat;
 import com.kunals990.aichat.entity.Session;
+import com.kunals990.aichat.entity.User;
+import com.kunals990.aichat.repository.UserRepository;
 import com.kunals990.aichat.service.ChatService;
 import com.kunals990.aichat.service.SessionService;
 import com.kunals990.aichat.service.UserService;
@@ -49,6 +51,15 @@ public class ChatController {
     public ResponseEntity<?> debugChat(@RequestBody String rawJson) {
         System.out.println("🚨 Raw JSON received: " + rawJson);
         return ResponseEntity.ok("Received");
+    }
+
+    @PostMapping("/getSession")
+    ResponseEntity<?> getSession(@CookieValue(value = "access_token", required = false) String accessToken) {
+        if (accessToken == null || accessToken.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No access token provided.");
+        }
+        String email = jwtUtil.extractEmail(accessToken);
+        return sessionService.getSession(email);
     }
 }
 

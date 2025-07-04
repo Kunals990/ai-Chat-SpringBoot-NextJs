@@ -1,5 +1,6 @@
 package com.kunals990.aichat.service;
 
+import com.kunals990.aichat.DTOs.SessionListResponse;
 import com.kunals990.aichat.DTOs.SessionResponse;
 import com.kunals990.aichat.entity.Session;
 import com.kunals990.aichat.entity.User;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -44,6 +46,26 @@ public class SessionService {
         );
 
         return ResponseEntity.ok(response);
+    }
+
+    public ResponseEntity<?> getSession(String email) {
+        Optional<User> optionalUser = userRepository.findByEmail(email);
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
+        }
+
+        // Convert to DTO
+        List<Session> sessions = optionalUser.get().getSessions();
+
+        List<SessionListResponse> sessionDTOs = sessions.stream()
+                .map(session -> new SessionListResponse(
+                        session.getId(),
+                        session.getSessionName(),
+                        session.getTimestamp()
+                ))
+                .toList();
+
+        return ResponseEntity.ok(sessionDTOs);
     }
 
 }
