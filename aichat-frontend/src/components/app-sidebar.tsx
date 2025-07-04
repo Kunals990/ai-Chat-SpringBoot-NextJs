@@ -82,9 +82,12 @@ export function AppSidebar() {
         ).toISOString()
         }));
       
+      // Reverse the array to show latest sessions first
+      const reversedSessions = parsed.reverse();
+      
       // Use the store's setSessions method
-      setSessions(parsed);
-      console.log('Sessions updated:', parsed);
+      setSessions(reversedSessions);
+      console.log('Sessions updated (latest first):', reversedSessions);
     } catch (error) {
       console.error('Error fetching sessions:', error);
       clearSessions(); 
@@ -98,7 +101,7 @@ export function AppSidebar() {
     if (!isAuthenticated) return;
 
     fetchSessions();
-  }, [isAuthenticated]); // Dependency on isAuthenticated
+  }, [isAuthenticated,sessions.length]); // Dependency on isAuthenticated
 
   const handleSignOut = () => {
     // Clear all stored auth data

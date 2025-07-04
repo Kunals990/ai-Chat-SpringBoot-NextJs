@@ -61,5 +61,11 @@ public class ChatController {
         String email = jwtUtil.extractEmail(accessToken);
         return sessionService.getSession(email);
     }
+
+    @PostMapping("/session-name")
+    ResponseEntity<?> getSessionName(@CookieValue(value = "access_token", required = false) String accessToken,
+                                     @RequestBody String sessionIdStr) {
+        return sessionService.getSessionName(sessionIdStr);
+    }
 }
 

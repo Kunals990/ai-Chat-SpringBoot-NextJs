@@ -16,5 +16,4 @@ public class SessionResponse {
     private String sessionName;
     private LocalDateTime timestamp;
 
-
 }

@@ -45,11 +45,22 @@ public class ChatService {
 
         UUID sessionId = chatRequest.getSession().getId();
 
+        Session session = sessionRepository.getSessionById(sessionId);
+        if (session == null) {
+            log.error("Session not found with ID: {}", sessionId);
+            return ResponseEntity.badRequest().body("Session not found");
+        }
+
         log.info("Using LLM: {}", llmKey);
         String response = selectedLlm.getResponse(chatRequest.getMessage());
 
-        //get session
-        Session session = sessionRepository.getSessionById(sessionId);
+        boolean isFirstChat = !chatRepository.existsBySessionId(sessionId);
+        if (isFirstChat) {
+            String titlePrompt = "Generate a short, clear title (2 to 4 words) for this chat:\n\n\" User: "+chatRequest.getMessage()+"\n\n\" Assistant:"+response+"\n\n Only return the title, no punctuation or quotation marks.";
+            String generatedTitle = selectedLlm.getResponse(titlePrompt);
+            session.setSessionName(generatedTitle);
+            sessionRepository.save(session);
+        }
 
         //save user chat
         chatRequest.setTimestamp(LocalDateTime.now());
@@ -68,9 +79,6 @@ public class ChatService {
         chatResponse.setMessage(response);
         chatResponse.setRole(ChatResponse.Role.ASSISTANT);
         chatResponse.setTimestamp(LocalDateTime.now().toString());
-
-//        System.out.println("Chat Response: " + chatResponse);
-//        System.out.println("Hello");
 
 
         return ResponseEntity.ok(chatResponse);

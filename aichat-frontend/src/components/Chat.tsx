@@ -6,6 +6,7 @@ import LoginPopup from './LoginPopup'
 import Cookies from 'js-cookie'
 import { useChatStore } from '@/store/chatStore'
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
+import { useSessionStore } from '@/store/sessionStore'
 
 interface Message {
   id: string
@@ -31,6 +32,7 @@ const Chat = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
   const [showLoginPopup, setShowLoginPopup] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const {sessions,setSessions,addSessions} = useSessionStore();
 
   const llmOptions: LLMOption[] = [
     { value: 'gemini', label: 'Gemini 2.5 Flash', icon: '🤖' },
@@ -87,7 +89,7 @@ const Chat = () => {
         const data = await response.json();
         const sessionId = data.id;
         const session_name = data.sessionName;
-        localStorage.setItem('session_id', sessionId);
+        console.log(session_name);
         return sessionId;
       } else {
         throw new Error('Failed to create session');
@@ -113,9 +115,10 @@ const Chat = () => {
 
     //check for session id -> if not create one
 
-    const session_id = localStorage.getItem('session_id');
+    var session_id = localStorage.getItem('session_id');
+    
     if(!session_id){
-      await createNewSession();
+      session_id = await createNewSession();
     }
 
 
@@ -141,8 +144,9 @@ const Chat = () => {
       console.log('Token preview:', token.substring(0, 50) + '...')
       console.log('Sending message:', inputMessage, 'with LLM:', selectedLLM)
 
-      const session_id = localStorage.getItem('session_id');
+      // const session_id = localStorage.getItem('session_id');
       console.log("session_id:", session_id);
+      // console.log("session_id:", temp_session_id);
 
       const response = await fetch(`${backendUrl}/chat/llm`, {
         method: 'POST',
@@ -180,6 +184,29 @@ const Chat = () => {
       
       // Add assistant message to store
       addMessage(assistantMessage);
+
+      const checkSessionId = localStorage.getItem('session_id');
+      if(!checkSessionId){
+          const response = await fetch(`${backendUrl}/chat/session-name`, {
+          method: 'POST',
+          credentials:"include",
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(session_id)
+        })
+        const sessionName = await response.text();
+        //got session name
+        const newSession = {
+          id: session_id!,
+          sessionName,
+          timestamp: new Date().toISOString(),
+        };
+        addSessions(newSession);
+        localStorage.setItem('session_id', session_id || '');
+        
+      }
+
     } catch (error) {
       console.error('Error sending message:', error)
       const errorMessage: Message = {

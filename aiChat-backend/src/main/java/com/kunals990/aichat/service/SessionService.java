@@ -68,4 +68,18 @@ public class SessionService {
         return ResponseEntity.ok(sessionDTOs);
     }
 
+    public ResponseEntity<?> getSessionName(String sessionIdStr) {
+        try {
+            UUID sessionId = UUID.fromString(sessionIdStr);  // 🔄 Convert string to UUID
+            Session session = sessionRepository.getSessionById(sessionId);
+
+            return ResponseEntity.ok(session.getSessionName());
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Invalid session ID");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
 }
