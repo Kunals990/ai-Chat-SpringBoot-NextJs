@@ -1,0 +1,2 @@
+org.springframework.context.ApplicationContextInitializer=\
+com.kunals990.aichat.config.DotenvInitializer
