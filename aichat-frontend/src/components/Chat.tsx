@@ -212,6 +212,10 @@ const Chat = () => {
         </div>
       </div>
 
+      <div>
+        
+      </div>
+
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4">
         <div className="max-w-4xl mx-auto space-y-4">
