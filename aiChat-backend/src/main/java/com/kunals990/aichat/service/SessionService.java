@@ -1,0 +1,49 @@
+package com.kunals990.aichat.service;
+
+import com.kunals990.aichat.DTOs.SessionResponse;
+import com.kunals990.aichat.entity.Session;
+import com.kunals990.aichat.entity.User;
+import com.kunals990.aichat.repository.SessionRepository;
+import com.kunals990.aichat.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
+import java.util.UUID;
+
+@Service
+public class SessionService {
+
+    @Autowired
+    private SessionRepository sessionRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    public ResponseEntity<?> createSession(String email) {
+        Optional<User> user = userRepository.findByEmail(email);
+        if (user.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+
+        Session session = new Session();
+        session.setUser(user.get());
+        session.setTimestamp(LocalDateTime.now());
+        session.setSessionName("New Chat");
+
+        Session savedSession = sessionRepository.save(session);
+
+        SessionResponse response = new SessionResponse(
+                savedSession.getId(),
+                savedSession.getSessionName(),
+                savedSession.getTimestamp()
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
+}
