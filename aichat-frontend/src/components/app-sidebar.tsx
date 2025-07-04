@@ -18,6 +18,7 @@ import { getSessions } from "@/utils/getSessions";
 import { useEffect, useState } from "react";
 import Cookies from 'js-cookie';
 import { useChatStore } from "@/store/chatStore"
+import { useSessionStore } from "@/store/sessionStore"
 
 // TypeScript interface for session data
 interface Session {
@@ -27,7 +28,7 @@ interface Session {
 }
 
 export function AppSidebar() {
-  const [sessions, setSessions] = useState<Session[] | null>(null);
+   const { sessions,setSessions } = useSessionStore.getState();
   const [loading, setLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userInfo, setUserInfo] = useState<any>(null);
@@ -78,7 +79,7 @@ export function AppSidebar() {
       setSessions(parsed);
     } catch (error) {
       console.error('Error fetching sessions:', error);
-      setSessions([]);
+      useSessionStore.getState().clearSessions(); 
     } finally {
       setLoading(false);
     }
@@ -110,7 +111,7 @@ export function AppSidebar() {
       // Clear current session - this will force creation of new session when user sends first message
       localStorage.removeItem('session_id');
       
-      // Navigate to main chat page (without session ID)
+      //Clear all messages
       useChatStore.getState().clearMessages(); 
       router.push('/');
       
