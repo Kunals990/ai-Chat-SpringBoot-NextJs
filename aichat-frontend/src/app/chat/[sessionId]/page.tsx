@@ -3,8 +3,9 @@ import { useChatStore } from '@/store/chatStore';
 import { useParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react'
 import Chat from '@/components/Chat';
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
+import { FloatingTrigger } from '@/components/FloatingTrigger';
 import Cookies from 'js-cookie';
 
 // DTO interface for backend response
@@ -28,8 +29,8 @@ export default function SessionPage() {
         setLoading(true);
         setError(null);
         
-        // Set the session ID in localStorage for the chat component
-        localStorage.setItem('session_id', sessionId);
+        // Set the session ID in sessionStorage for the chat component
+        sessionStorage.setItem('session_id', sessionId);
     console.log("session id is:", sessionId);
     
     // Add validation for sessionId format
@@ -105,8 +106,8 @@ export default function SessionPage() {
       return (
         <SidebarProvider defaultOpen={true}>
           <AppSidebar />
-          <main className="flex-1 flex items-center justify-center">
-            <SidebarTrigger />
+          <main className="flex-1 flex items-center justify-center relative">
+            <FloatingTrigger />
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
               <p>Loading chat history...</p>
@@ -120,8 +121,8 @@ export default function SessionPage() {
       return (
         <SidebarProvider defaultOpen={true}>
           <AppSidebar />
-          <main className="flex-1 flex items-center justify-center">
-            <SidebarTrigger />
+          <main className="flex-1 flex items-center justify-center relative">
+            <FloatingTrigger />
             <div className="text-center">
               <p className="text-red-600 mb-4">Error: {error}</p>
               <button 
@@ -139,8 +140,8 @@ export default function SessionPage() {
     return (
       <SidebarProvider defaultOpen={true}>
         <AppSidebar />
-        <main className="flex-1">
-          <SidebarTrigger />
+        <main className="flex-1 relative">
+          <FloatingTrigger />
           <Chat />
         </main>
       </SidebarProvider>

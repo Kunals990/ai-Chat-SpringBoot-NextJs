@@ -1,6 +1,6 @@
 "use client"
 import { Calendar, ChevronUp, Inbox, Search, Settings, User2, MessageSquare, LogOut, Plus } from "lucide-react"
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 
 import {
   Sidebar,
@@ -12,6 +12,8 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu"
 import { getSessions } from "@/utils/getSessions";
@@ -34,6 +36,11 @@ export function AppSidebar() {
   const [userInfo, setUserInfo] = useState<any>(null);
   const [isCreatingNewChat, setIsCreatingNewChat] = useState(false);
   const router = useRouter();
+  const params = useParams();
+  const { toggleSidebar } = useSidebar();
+  
+  // Get current session ID from URL params
+  const currentSessionId = params?.sessionId as string;
 
   useEffect(() => {
     // Check if user is authenticated
@@ -87,7 +94,7 @@ export function AppSidebar() {
       
       // Use the store's setSessions method
       setSessions(reversedSessions);
-      console.log('Sessions updated (latest first):', reversedSessions);
+      // console.log('Sessions updated (latest first):', reversedSessions);
     } catch (error) {
       console.error('Error fetching sessions:', error);
       clearSessions(); 
@@ -120,7 +127,7 @@ export function AppSidebar() {
     setIsCreatingNewChat(true);
     try {
       // Clear current session - this will force creation of new session when user sends first message
-      localStorage.removeItem('session_id');
+      sessionStorage.removeItem('session_id');
       
       //Clear all messages
       useChatStore.getState().clearMessages(); 
@@ -137,92 +144,108 @@ export function AppSidebar() {
     }
   };
   return (
-    <Sidebar >
-      <SidebarContent>
+    <Sidebar className="border-r border-gray-100 bg-white">
+      <SidebarContent className="bg-white">
         {/* App Branding */}
         <SidebarGroup>
-          <div className="px-4 py-3 border-b border-gray-200">
-            <h1 className="text-xl font-bold text-gray-900">aiChat</h1>
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h1 className="text-2xl font-semibold text-gray-800 tracking-tight">aiChat</h1>
+            <SidebarTrigger className="h-6 w-6 text-gray-500 hover:text-gray-700 transition-colors" />
           </div>
         </SidebarGroup>
 
         {/* Navigation Menu */}
-        <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {isAuthenticated && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton 
-                    onClick={handleNewChat} 
-                    disabled={isCreatingNewChat}
-                    className="font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed border border-blue-200 rounded-md"
-                  >
-                    {isCreatingNewChat ? (
-                      <Search className="animate-spin" />
-                    ) : (
-                      <Plus />
-                    )}
-                    {isCreatingNewChat ? 'Creating...' : 'New Chat'}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
-              {!isAuthenticated && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <a href="/login" className="font-medium">
-                      <User2 />
-                      Login
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
-            </SidebarMenu>
-          </SidebarGroupContent>
+        <SidebarGroup className="px-3 py-2">
+          <SidebarMenu>
+            {isAuthenticated && (
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  onClick={handleNewChat} 
+                  disabled={isCreatingNewChat}
+                  className="font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg h-10 transition-all duration-200 shadow-sm hover:shadow-md"
+                >
+                  {isCreatingNewChat ? (
+                    <Search className="animate-spin h-4 w-4" />
+                  ) : (
+                    <Plus className="h-4 w-4" />
+                  )}
+                  {isCreatingNewChat ? 'Creating...' : 'New Chat'}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
+            {!isAuthenticated && (
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <a href="/login" className="font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 transition-colors rounded-lg h-10">
+                    <User2 className="h-4 w-4" />
+                    Login
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
+          </SidebarMenu>
         </SidebarGroup>
 
         {/* Chat Sessions */}
-        <SidebarGroup className="flex-1 overflow-hidden">
-          <SidebarGroupLabel>Recent Chats</SidebarGroupLabel>
+        <SidebarGroup className="flex-1 overflow-hidden px-3">
+          <SidebarGroupLabel className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Recent Chats</SidebarGroupLabel>
           <SidebarGroupContent className="flex-1 overflow-hidden">
-            <div className="max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-              <SidebarMenu>
+            <div className="max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+              <SidebarMenu className="space-y-1">
                 {!isAuthenticated ? (
                   <SidebarMenuItem>
-                    <SidebarMenuButton disabled>
-                      <User2 />
+                    <div className="flex items-center gap-3 px-3 py-2 text-gray-500 text-sm">
+                      <User2 className="h-4 w-4" />
                       Please login to view sessions
-                    </SidebarMenuButton>
+                    </div>
                   </SidebarMenuItem>
                 ) : loading ? (
                   <SidebarMenuItem>
-                    <SidebarMenuButton disabled>
-                      <Search className="animate-spin" />
+                    <div className="flex items-center gap-3 px-3 py-2 text-gray-500 text-sm">
+                      <Search className="animate-spin h-4 w-4" />
                       Loading sessions...
-                    </SidebarMenuButton>
+                    </div>
                   </SidebarMenuItem>
                 ) : sessions && sessions.length > 0 ? (
-                  sessions.map((session) => (
-                    <SidebarMenuItem key={session.id}>
-                      <SidebarMenuButton asChild>
-                        <a href={`/chat/${session.id}`} className="flex flex-col items-start">
-                          <div className="flex items-center gap-2 w-full">
-                            <MessageSquare className="h-4 w-4" />
-                            <span className="truncate">{session.sessionName}</span>
+                  sessions.map((session) => {
+                    const isSelected = currentSessionId === session.id;
+                    return (
+                      <SidebarMenuItem key={session.id}>
+                        {isSelected ? (
+                          <div className="bg-blue-600 text-white flex flex-col items-start p-3 rounded-lg shadow-sm">
+                            <div className="flex items-center gap-3 w-full">
+                              <MessageSquare className="h-4 w-4 flex-shrink-0" />
+                              <span className="truncate font-medium">{session.sessionName}</span>
+                            </div>
+                            <span className="text-xs text-blue-100 ml-7 mt-1">
+                              {new Date(session.timestamp).toLocaleDateString('en-GB')}
+                            </span>
                           </div>
-                          <span className="text-xs text-muted-foreground ml-6">
-                            {new Date(session.timestamp).toLocaleDateString()}
-                          </span>
-                        </a>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))
+                        ) : (
+                          <SidebarMenuButton asChild>
+                            <a 
+                              href={`/chat/${session.id}`} 
+                              className="flex flex-col items-start p-3 hover:bg-gray-50 transition-colors rounded-lg group"
+                            >
+                              <div className="flex items-center gap-3 w-full">
+                                <MessageSquare className="h-4 w-4 flex-shrink-0 text-gray-400 group-hover:text-gray-600" />
+                                <span className="truncate text-gray-700 group-hover:text-gray-900">{session.sessionName}</span>
+                              </div>
+                              <span className="text-xs text-gray-400 ml-7 mt-1">
+                                {new Date(session.timestamp).toLocaleDateString('en-GB')}
+                              </span>
+                            </a>
+                          </SidebarMenuButton>
+                        )}
+                      </SidebarMenuItem>
+                    );
+                  })
                 ) : (
                   <SidebarMenuItem>
-                    <SidebarMenuButton disabled>
-                      <MessageSquare />
+                    <div className="flex items-center gap-3 px-3 py-2 text-gray-500 text-sm">
+                      <MessageSquare className="h-4 w-4" />
                       No sessions found
-                    </SidebarMenuButton>
+                    </div>
                   </SidebarMenuItem>
                 )}
               </SidebarMenu>
@@ -230,31 +253,29 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="border-t border-gray-100 p-3">
         <SidebarMenu>
           <SidebarMenuItem>
             {isAuthenticated ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <SidebarMenuButton>
-                    <User2 /> 
-                    {userInfo?.name || 'User'}
-                    <ChevronUp className="ml-auto" />
+                  <SidebarMenuButton className="h-12 px-3 hover:bg-gray-50 transition-colors rounded-lg">
+                    <User2 className="h-5 w-5 text-gray-600" /> 
+                    <span className="font-medium text-gray-700">{userInfo?.name || 'User'}</span>
+                    <ChevronUp className="ml-auto h-4 w-4 text-gray-400" />
                   </SidebarMenuButton>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   side="top"
-                  className="w-[--radix-popper-anchor-width] bg-white border border-gray-200 rounded-md shadow-lg p-1"
+                  className="w-[--radix-popper-anchor-width] bg-white border border-gray-200 rounded-xl shadow-lg p-2 min-w-[200px]"
                 >
-                  <DropdownMenuItem className="px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer rounded">
-                    <span>Account</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer rounded">
-                    <span>Settings</span>
+                  <DropdownMenuItem className="px-4 py-3 text-sm hover:bg-gray-50 cursor-pointer rounded-lg transition-colors flex items-center gap-3">
+                    <Settings className="h-4 w-4 text-gray-500" />
+                    <span className="text-gray-700">Settings</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={handleSignOut}
-                    className="px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer rounded text-red-600 flex items-center gap-2"
+                    className="px-4 py-3 text-sm hover:bg-red-50 cursor-pointer rounded-lg text-red-600 flex items-center gap-3 transition-colors"
                   >
                     <LogOut className="h-4 w-4" />
                     <span>Sign out</span>
@@ -263,8 +284,8 @@ export function AppSidebar() {
               </DropdownMenu>
             ) : (
               <SidebarMenuButton asChild>
-                <a href="/login" className="flex items-center gap-2 text-blue-600 font-medium">
-                  <User2 />
+                <a href="/login" className="flex items-center gap-3 text-blue-600 font-medium hover:bg-blue-50 transition-colors rounded-lg h-12 px-3">
+                  <User2 className="h-5 w-5" />
                   <span>Please Login</span>
                 </a>
               </SidebarMenuButton>

@@ -58,9 +58,9 @@ const CallbackPage = () => {
             console.error('Backend authentication failed:', backendError);
             setStatus('Frontend auth successful, but backend connection failed');
           }
-          console.log("before router");
+          // console.log("before router");
           router.push("/");
-          console.log("after router");
+          // console.log("after router");
         } else {
           setStatus('Authentication failed');
         }
