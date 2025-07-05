@@ -1,21 +1,15 @@
 package com.kunals990.aichat.controller;
 
 import com.kunals990.aichat.entity.Chat;
-import com.kunals990.aichat.entity.Session;
-import com.kunals990.aichat.entity.User;
-import com.kunals990.aichat.repository.UserRepository;
 import com.kunals990.aichat.service.ChatService;
 import com.kunals990.aichat.service.SessionService;
-import com.kunals990.aichat.service.UserService;
 import com.kunals990.aichat.utils.JwtUtil;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
-import java.util.UUID;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/chat")
@@ -37,13 +31,17 @@ public class ChatController {
         return chatService.getChat(chat);
     }
 
+    @PostMapping("/all-chats")
+    ResponseEntity<?> getAllChats(@RequestBody Map<String, String> request) {
+        String sessionId = request.get("sessionId");
+        return chatService.getAllChats(sessionId);
+    }
+
     @PostMapping("/session")
     ResponseEntity<?> createSession(@CookieValue(value = "access_token", required = false) String accessToken) {
 
         String email = jwtUtil.extractEmail(accessToken);
         System.out.println(email);
-//        ResponseEntity<?> session =  ;
-//        System.out.println(session);
         return sessionService.createSession(email);
     }
 
@@ -59,7 +57,7 @@ public class ChatController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No access token provided.");
         }
         String email = jwtUtil.extractEmail(accessToken);
-        return sessionService.getSession(email);
+        return sessionService.getSessions(email);
     }
 
     @PostMapping("/session-name")

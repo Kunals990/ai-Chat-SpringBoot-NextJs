@@ -1,8 +1,8 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { getSessions } from '@/utils/getSessions';
 import { MessageSquare, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { getSessions } from '@/utils/getSessions';
 
 interface Session {
   id: string;

@@ -1,9 +1,8 @@
 "use client";
-import React from 'react';
+import { AppSidebar } from '@/components/app-sidebar';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar";
-import DashboardContent from '@/components/DashboardContent';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import React from 'react';
 
 const Dashboard = () => {
   return (
@@ -12,7 +11,6 @@ const Dashboard = () => {
         <AppSidebar />
         <main className="flex-1">
           <SidebarTrigger />
-          <DashboardContent />
         </main>
       </SidebarProvider>
     </ProtectedRoute>

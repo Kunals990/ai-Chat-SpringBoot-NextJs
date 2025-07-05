@@ -1,24 +1,19 @@
 package com.kunals990.aichat.service;
 
 import com.kunals990.aichat.DTOs.ChatResponse;
+import com.kunals990.aichat.DTOs.SessionChatsResponse;
 import com.kunals990.aichat.entity.Chat;
 import com.kunals990.aichat.entity.Session;
 import com.kunals990.aichat.repository.ChatRepository;
 import com.kunals990.aichat.repository.SessionRepository;
-import com.kunals990.aichat.service.llm.Gemini;
 import com.kunals990.aichat.service.llm.LLM;
-import com.kunals990.aichat.service.llm.OpenAi;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -82,5 +77,27 @@ public class ChatService {
 
 
         return ResponseEntity.ok(chatResponse);
+    }
+
+    public ResponseEntity<?> getAllChats(String sessionIdStr) {
+        sessionIdStr = sessionIdStr.trim();
+        UUID sessionId = UUID.fromString(sessionIdStr);
+        Session session = sessionRepository.getSessionById(sessionId);
+
+        if (session == null) {
+            log.error("Session not found with ID: {}", sessionId);
+            return ResponseEntity.badRequest().body("Session not found");
+        }
+        List<Chat> chats = session.getChats();
+
+        List<SessionChatsResponse> chatDTOs = chats.stream()
+                .map(chat -> new SessionChatsResponse(
+                        chat.getMessage(),
+                        chat.getRole(),
+                        chat.getLLM(),
+                        chat.getTimestamp()
+                )).toList();
+
+        return ResponseEntity.ok(chatDTOs);
     }
 }

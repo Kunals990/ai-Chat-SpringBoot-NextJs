@@ -1,5 +1,5 @@
 "use client"
-import { Calendar, ChevronUp, Home, Inbox, Search, Settings, User2, MessageSquare, LogOut, Plus } from "lucide-react"
+import { Calendar, ChevronUp, Inbox, Search, Settings, User2, MessageSquare, LogOut, Plus } from "lucide-react"
 import { useRouter } from 'next/navigation'
 
 import {
@@ -151,39 +151,21 @@ export function AppSidebar() {
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <a href="/" className="font-medium">
-                    <MessageSquare />
-                    Chat
-                  </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
               {isAuthenticated && (
-                <>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton 
-                      onClick={handleNewChat} 
-                      disabled={isCreatingNewChat}
-                      className="font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed border border-blue-200 rounded-md"
-                    >
-                      {isCreatingNewChat ? (
-                        <Search className="animate-spin" />
-                      ) : (
-                        <Plus />
-                      )}
-                      {isCreatingNewChat ? 'Creating...' : 'New Chat'}
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      <a href="/dashboard" className="font-medium">
-                        <Home />
-                        Dashboard
-                      </a>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </>
+                <SidebarMenuItem>
+                  <SidebarMenuButton 
+                    onClick={handleNewChat} 
+                    disabled={isCreatingNewChat}
+                    className="font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed border border-blue-200 rounded-md"
+                  >
+                    {isCreatingNewChat ? (
+                      <Search className="animate-spin" />
+                    ) : (
+                      <Plus />
+                    )}
+                    {isCreatingNewChat ? 'Creating...' : 'New Chat'}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               )}
               {!isAuthenticated && (
                 <SidebarMenuItem>
@@ -223,7 +205,7 @@ export function AppSidebar() {
                   sessions.map((session) => (
                     <SidebarMenuItem key={session.id}>
                       <SidebarMenuButton asChild>
-                        <a href={`/?sessionId=${session.id}`} className="flex flex-col items-start">
+                        <a href={`/chat/${session.id}`} className="flex flex-col items-start">
                           <div className="flex items-center gap-2 w-full">
                             <MessageSquare className="h-4 w-4" />
                             <span className="truncate">{session.sessionName}</span>
