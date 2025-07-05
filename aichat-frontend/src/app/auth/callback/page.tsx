@@ -1,8 +1,10 @@
 "use client"
+
+export const dynamic = 'force-dynamic';
+
 import React, { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { sendTokenToBackend } from '@/utils/auth'
-import Cookies from 'js-cookie';
 
 const CallbackPage = () => {
   const router = useRouter();

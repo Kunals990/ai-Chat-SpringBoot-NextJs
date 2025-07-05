@@ -4,7 +4,7 @@ export async function POST(request: NextRequest) {
   try {
     // const router = useRouter();
     console.log('Chat API called')
-    const { message, llm, history } = await request.json();
+    const { message, llm} = await request.json();
     console.log('Received data:', { message, llm })
     
     const token=request.cookies.get('access_token')?.value;

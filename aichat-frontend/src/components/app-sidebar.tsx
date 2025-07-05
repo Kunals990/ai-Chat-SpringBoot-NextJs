@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
-import { Calendar, ChevronUp, Inbox, Search, Settings, User2, MessageSquare, LogOut, Plus } from "lucide-react"
+import { ChevronUp,Search, Settings, User2, MessageSquare, LogOut, Plus } from "lucide-react"
 import { useRouter, useParams } from 'next/navigation'
 
 import {
@@ -13,7 +14,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarTrigger,
-  useSidebar,
 } from "@/components/ui/sidebar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu"
 import { getSessions } from "@/utils/getSessions";
@@ -23,21 +23,27 @@ import { useChatStore } from "@/store/chatStore"
 import { useSessionStore } from "@/store/sessionStore"
 
 // TypeScript interface for session data
-interface Session {
+// interface Session {
+//   id: string;
+//   sessionName: string;
+//   timestamp: string;
+// }
+
+interface UserInfo {
   id: string;
-  sessionName: string;
-  timestamp: string;
+  email: string;
+  name: string;
+  picture: string;
 }
 
 export function AppSidebar() {
   const { sessions, setSessions, clearSessions } = useSessionStore();
   const [loading, setLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userInfo, setUserInfo] = useState<any>(null);
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [isCreatingNewChat, setIsCreatingNewChat] = useState(false);
   const router = useRouter();
   const params = useParams();
-  const { toggleSidebar } = useSidebar();
   
   // Get current session ID from URL params
   const currentSessionId = params?.sessionId as string;
@@ -53,7 +59,7 @@ export function AppSidebar() {
         const userInfoStr = localStorage.getItem('user_info');
         if (userInfoStr) {
           try {
-            setUserInfo(JSON.parse(userInfoStr));
+            setUserInfo(JSON.parse(userInfoStr) as UserInfo);
           } catch (error) {
             console.error('Error parsing user info:', error);
           }

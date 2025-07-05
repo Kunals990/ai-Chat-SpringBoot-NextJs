@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 import { useChatStore } from '@/store/chatStore';
 import { useParams } from 'next/navigation';
@@ -9,12 +10,12 @@ import { FloatingTrigger } from '@/components/FloatingTrigger';
 import Cookies from 'js-cookie';
 
 // DTO interface for backend response
-interface SessionChatsResponse {
-  message: string;
-  role: 'USER' | 'ASSISTANT';
-  LLM: string;
-  timestamp: string;
-}
+// interface SessionChatsResponse {
+//   message: string;
+//   role: 'USER' | 'ASSISTANT';
+//   LLM: string;
+//   timestamp: string;
+// }
 
 export default function SessionPage() {
     const params = useParams();
@@ -147,4 +148,3 @@ export default function SessionPage() {
       </SidebarProvider>
     );
 }
-

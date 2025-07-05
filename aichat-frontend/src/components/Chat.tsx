@@ -1,6 +1,5 @@
 "use client"
 import React, { useState, useRef, useEffect, useDeferredValue } from 'react'
-import { useRouter } from 'next/navigation'
 import { getStoredIdToken } from '@/utils/auth'
 import LoginPopup from './LoginPopup'
 import Cookies from 'js-cookie'
@@ -95,7 +94,7 @@ const Chat = () => {
 
     window.addEventListener('newChatSession', handleNewChatSession)
     return () => window.removeEventListener('newChatSession', handleNewChatSession)
-  }, [])
+  }, [setMessages])
 
   // Scroll when messages length changes
   useEffect(() => {

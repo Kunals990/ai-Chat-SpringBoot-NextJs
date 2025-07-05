@@ -1,6 +1,10 @@
+interface Session {
+  id: string;
+  sessionName: string;
+  timestamp: [number, number, number, number, number, number, number];
+}
 
-
-export async function getSessions(): Promise<any[] | null> {
+export async function getSessions(): Promise<Session[] | null> {
   try {
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
     const response = await fetch(`${backendUrl}/chat/getSession`, {
@@ -16,8 +20,8 @@ export async function getSessions(): Promise<any[] | null> {
       return null;
     }
 
-    const data = await response.json();
-    // console.log(data);
+    const data: Session[] = await response.json();
+    console.log(data);
     return data; // array of session objects
   } catch (error) {
     console.error('Error fetching sessions:', error);
