@@ -10,7 +10,6 @@ import { useSessionStore } from '@/store/sessionStore'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Send } from 'lucide-react'
-import { shallow } from 'zustand/shallow'
 
 interface Message {
   id: string
@@ -53,9 +52,9 @@ const ChatMessage = React.memo(({ message }: { message: Message }) => {
     </div>
   )
 })
+ChatMessage.displayName = 'ChatMessage'
 
 const Chat = () => {
-  const router = useRouter()
   const messages = useChatStore((state) => state.messages)
   const addMessage = useChatStore((state) => state.addMessage)
   const setMessages = useChatStore((state) => state.setMessages)
@@ -66,7 +65,7 @@ const Chat = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
   const [showLoginPopup, setShowLoginPopup] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const { sessions, setSessions, addSessions } = useSessionStore()
+  const {addSessions } = useSessionStore()
 
   const llmOptions: LLMOption[] = [
     { value: 'gemini', label: 'Gemini 2.5 Flash', icon: '✨' },

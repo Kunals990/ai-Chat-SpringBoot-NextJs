@@ -45,14 +45,12 @@ const CallbackPage = () => {
           // Store the token and user info
           localStorage.setItem('access_token', data.token);
           localStorage.setItem('id_token', data.id_token);
-          localStorage.setItem('user_info', JSON.stringify(data.user));
-          
-          
+        
           setStatus('Authentication successful! Sending to backend...');
           
           // Send the ID token to your backend (not the access token)
           try {
-            await sendTokenToBackend(data.id_token, data.user);
+            await sendTokenToBackend(data.id_token);
             setStatus('Successfully authenticated! Redirecting...');
           } catch (backendError) {
             console.error('Backend authentication failed:', backendError);

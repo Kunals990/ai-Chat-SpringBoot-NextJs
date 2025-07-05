@@ -53,7 +53,6 @@ public class JwtUtil {
 
     public boolean validateToken(String token) {
         try {
-            System.out.println("=== Validate Token ==="+token);
             Jwts.parserBuilder()
                     .setSigningKey(secretKey)
                     .build()

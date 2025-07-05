@@ -13,7 +13,5 @@ public class EnvLoader {
         dotenv.entries().forEach(entry ->
                 System.setProperty(entry.getKey(), entry.getValue())
         );
-        System.out.println(">>> OPENAI_API_KEY: " + System.getProperty("OPENAI_API_KEY"));
-        System.out.println(">>> TEST_VALUE: " + System.getProperty("TEST_VALUE"));
     }
 }

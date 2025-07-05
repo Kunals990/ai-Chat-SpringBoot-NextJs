@@ -115,7 +115,6 @@ export function AppSidebar() {
     Cookies.remove('access_token');
     localStorage.removeItem('access_token');
     localStorage.removeItem('id_token');
-    localStorage.removeItem('user_info');
     
     // Redirect to login
     router.push('/login');

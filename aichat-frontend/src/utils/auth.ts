@@ -1,6 +1,6 @@
 // Utility functions for handling authentication tokens
 
-export const sendTokenToBackend = async (idToken: string, userInfo: any) => {
+export const sendTokenToBackend = async (idToken: string) => {
   try {
     // Use environment variable for backend URL
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -70,19 +70,3 @@ export const getStoredToken = () => {
   return getStoredAccessToken();
 };
 
-export const getUserInfo = () => {
-  if (typeof window !== 'undefined') {
-    const userInfo = localStorage.getItem('user_info');
-    return userInfo ? JSON.parse(userInfo) : null;
-  }
-  return null;
-};
-
-export const clearAuthData = () => {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('id_token');
-    localStorage.removeItem('user_info');
-    localStorage.removeItem('jwt');
-  }
-};

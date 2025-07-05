@@ -1,7 +1,7 @@
 "use client"
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { getStoredIdToken, getUserInfo } from '@/utils/auth'
+import { getStoredIdToken,  } from '@/utils/auth'
 import Cookies from 'js-cookie';
 
 interface ProtectedRouteProps {
