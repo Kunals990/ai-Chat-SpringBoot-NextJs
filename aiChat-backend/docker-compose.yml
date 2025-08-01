@@ -1,31 +1,14 @@
 services:
-  db:
-    image: postgres:17
-    environment:
-      POSTGRES_DB: aiChat
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    restart: always
-
   app:
-    build: .
+    image: kunals99/aichat-backend:latest  # Replace with your actual Docker Hub image name
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/aiChat
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_DATASOURCE_URL: ${POSTGRESQL_URL}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRESQL_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRESQL_PASSWORD}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       GEMINI_API_KEY: ${GEMINI_API_KEY}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       JWT_SECRET: ${JWT_SECRET}
-
-    depends_on:
-      - db
-volumes:
-  postgres_data:

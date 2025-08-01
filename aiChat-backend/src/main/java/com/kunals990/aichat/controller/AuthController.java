@@ -13,6 +13,7 @@ import com.kunals990.aichat.utils.JwtUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -67,16 +68,16 @@ public class AuthController {
         String jwt = jwtUtil.generateToken(email);
 
         ResponseCookie jwtCookie = ResponseCookie.from("access_token", jwt)
-                .httpOnly(false)
-                .secure(false) // true in production; false for local dev without HTTPS
+                .httpOnly(true)
+                .secure(true) // true in production; false for local dev without HTTPS
                 .path("/")
-                .sameSite("Lax")
+                .sameSite("None")
                 .maxAge(24 * 60 * 60) // 1 day
                 .build();
 
-        response.addHeader("Set-Cookie", jwtCookie.toString());
-
-        return ResponseEntity.ok(new AuthResponse(jwt));
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
+                .body(new AuthResponse(jwt));
     }
 
     private GoogleIdToken.Payload verifyGoogleToken(String idTokenString) {
@@ -100,9 +101,9 @@ public class AuthController {
         // Invalidate the cookie by setting Max-Age to 0
         ResponseCookie deleteCookie = ResponseCookie.from("access_token", "")
                 .httpOnly(true)
-                .secure(false) // or true if you're using HTTPS
+                .secure(true) // or true if you're using HTTPS
                 .path("/")
-                .sameSite("Lax")
+                .sameSite("None")
                 .maxAge(0) // 👈 removes the cookie
                 .build();
 
