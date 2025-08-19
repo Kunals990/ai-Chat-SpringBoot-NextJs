@@ -3,9 +3,9 @@ import React, { useState, useRef, useEffect, useDeferredValue } from 'react'
 import { getStoredIdToken } from '@/utils/auth'
 import LoginPopup from './LoginPopup'
 import Cookies from 'js-cookie'
-import { useChatStore } from '@/store/chatStore'
+import { useChatStore } from '@/stores/chatStore'
 import { MarkdownRenderer } from '@/components/MarkdownRenderer'
-import { useSessionStore } from '@/store/sessionStore'
+import { useSessionStore } from '@/stores/sessionStore'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Send } from 'lucide-react'
@@ -76,7 +76,7 @@ const Chat = () => {
   // Check authentication status once
   useEffect(() => {
     const token = Cookies.get('access_token')
-    setIsAuthenticated(!!token)
+    setIsAuthenticated(!token)
 
     // Optional: polling auth if user may log in from other tab
     // const interval = setInterval(() => {

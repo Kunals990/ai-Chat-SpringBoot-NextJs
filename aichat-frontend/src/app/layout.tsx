@@ -1,3 +1,5 @@
+import AuthProvider from "@/components/AuthProvider";
+
 export const dynamic = 'force-dynamic';
 
 import type { Metadata } from "next";
@@ -19,18 +21,21 @@ export const metadata: Metadata = {
   description: "AI Chat application with SpringBoot backend",
 };
 
+
+
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
 
-          {children}
+      <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

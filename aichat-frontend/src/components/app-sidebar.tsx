@@ -19,56 +19,25 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { getSessions } from "@/utils/getSessions";
 import { useEffect, useState } from "react";
 import Cookies from 'js-cookie';
-import { useChatStore } from "@/store/chatStore"
-import { useSessionStore } from "@/store/sessionStore"
+import { useChatStore } from "@/stores/chatStore"
+import { useSessionStore } from "@/stores/sessionStore"
+import {useAuthStore} from "@/stores/authStore";
 
-// TypeScript interface for session data
-// interface Session {
-//   id: string;
-//   sessionName: string;
-//   timestamp: string;
-// }
-
-interface UserInfo {
-  id: string;
-  email: string;
-  name: string;
-  picture: string;
-}
 
 export function AppSidebar() {
   const { sessions, setSessions, clearSessions } = useSessionStore();
   const [loading, setLoading] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [isCreatingNewChat, setIsCreatingNewChat] = useState(false);
   const router = useRouter();
   const params = useParams();
-  
+
+  const user = useAuthStore((state)=>state.user);
+  console.log(user);
+
   // Get current session ID from URL params
   const currentSessionId = params?.sessionId as string;
 
-  useEffect(() => {
-    // Check if user is authenticated
-    const checkAuth = () => {
-      const token = Cookies.get('access_token');
-      setIsAuthenticated(!!token);
-      
-      if (token) {
-        // Get user info from localStorage
-        const userInfoStr = localStorage.getItem('user_info');
-        if (userInfoStr) {
-          try {
-            setUserInfo(JSON.parse(userInfoStr) as UserInfo);
-          } catch (error) {
-            console.error('Error parsing user info:', error);
-          }
-        }
-      }
-    };
-
-    checkAuth();
-  }, []);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   const fetchSessions = async () => {
     setLoading(true);
@@ -98,7 +67,7 @@ export function AppSidebar() {
       // Reverse the array to show latest sessions first
       const reversedSessions = parsed.reverse();
       
-      // Use the store's setSessions method
+      // Use the stores's setSessions method
       setSessions(reversedSessions);
       // console.log('Sessions updated (latest first):', reversedSessions);
     } catch (error) {
@@ -266,7 +235,7 @@ export function AppSidebar() {
                 <DropdownMenuTrigger asChild>
                   <SidebarMenuButton className="h-12 px-3 hover:bg-gray-50 transition-colors rounded-lg">
                     <User2 className="h-5 w-5 text-gray-600" /> 
-                    <span className="font-medium text-gray-700">{userInfo?.name || 'User'}</span>
+                    <span className="font-medium text-gray-700">{user?.name || 'User'}</span>
                     <ChevronUp className="ml-auto h-4 w-4 text-gray-400" />
                   </SidebarMenuButton>
                 </DropdownMenuTrigger>

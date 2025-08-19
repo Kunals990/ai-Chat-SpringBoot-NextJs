@@ -1,5 +1,6 @@
 package com.kunals990.aichat.service;
 
+import com.kunals990.aichat.DTOs.ChatRequest;
 import com.kunals990.aichat.DTOs.ChatResponse;
 import com.kunals990.aichat.DTOs.SessionChatsResponse;
 import com.kunals990.aichat.entity.Chat;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -33,11 +35,12 @@ public class ChatService {
         this.chatRepository = chatRepository;
     }
 
-    public ResponseEntity<?> getChat(Chat chatRequest) {
+    public ResponseEntity<?> getChat(ChatRequest chatRequest) {
         String llmKey = chatRequest.getLLM() != null ?chatRequest.getLLM().toLowerCase() : "openai";
 
         LLM selectedLlm = llmMap.getOrDefault(llmKey, llmMap.get("openai"));
-
+        System.out.println("llm key is "+llmKey);
+        System.out.println("selected llm is "+selectedLlm);
         UUID sessionId = chatRequest.getSession().getId();
 
         Session session = sessionRepository.getSessionById(sessionId);
@@ -47,28 +50,39 @@ public class ChatService {
         }
 
         log.info("Using LLM: {}", llmKey);
-        String response = selectedLlm.getResponse(chatRequest.getMessage());
+        List<ChatRequest.MessageDTO> messages = chatRequest.getMessages();
+        ChatRequest.MessageDTO lastUserMessage = messages.get(messages.size() - 1);
+        String prompt = buildPrompt(messages);
+        String response = selectedLlm.getResponse(prompt);
 
         boolean isFirstChat = !chatRepository.existsBySessionId(sessionId);
         if (isFirstChat) {
-            String titlePrompt = "Generate a short, clear title (2 to 4 words) for this chat:\n\n\" User: "+chatRequest.getMessage()+"\n\n\" Assistant:"+response+"\n\n Only return the title, no punctuation or quotation marks.";
+            String titlePrompt =
+                    "Generate a short, clear title (2 to 4 words) for this chat:\n\n" +
+                            "User: " + lastUserMessage.getParts().get(0).getText() + "\n\n" +
+                            "Assistant: " + response +
+                            "\n\nOnly return the title, no punctuation or quotation marks.";
+
             String generatedTitle = selectedLlm.getResponse(titlePrompt);
             session.setSessionName(generatedTitle);
             sessionRepository.save(session);
         }
 
-        //save user chat
-        chatRequest.setTimestamp(LocalDateTime.now());
-        chatRequest.setSession(session);
-        chatRepository.save(chatRequest);
+        Chat userChat = new Chat();
+        userChat.setLLM(selectedLlm.toString());
+        userChat.setRole(Chat.Role.USER);
+        userChat.setMessage(lastUserMessage.getParts().get(0).getText());
+        userChat.setTimestamp(LocalDateTime.now());
+        userChat.setSession(session);
+        chatRepository.save(userChat);
 
-        Chat chat = new Chat();
-        chat.setLLM(selectedLlm.toString());
-        chat.setRole(Chat.Role.ASSISTANT);
-        chat.setMessage(response);
-        chat.setTimestamp(LocalDateTime.now());
-        chat.setSession(session);
-        chatRepository.save(chat);
+        Chat assistantChat = new Chat();
+        assistantChat.setRole(Chat.Role.ASSISTANT);
+        assistantChat.setMessage(response);
+        assistantChat.setLLM(llmKey);
+        assistantChat.setTimestamp(LocalDateTime.now());
+        assistantChat.setSession(session);
+        chatRepository.save(assistantChat);
 
         ChatResponse chatResponse = new ChatResponse();
         chatResponse.setMessage(response);
@@ -77,6 +91,19 @@ public class ChatService {
 
 
         return ResponseEntity.ok(chatResponse);
+    }
+
+    private String buildPrompt(List<ChatRequest.MessageDTO> messages) {
+        StringBuilder sb = new StringBuilder();
+        for (ChatRequest.MessageDTO msg : messages) {
+            String role = msg.getRole().equalsIgnoreCase("user") ? "User" : "Assistant";
+            String content = msg.getParts().stream()
+                    .map(ChatRequest.PartDTO::getText)
+                    .collect(Collectors.joining(" "));
+
+            sb.append(role).append(": ").append(content).append("\n");
+        }
+        return sb.toString();
     }
 
     public ResponseEntity<?> getAllChats(String sessionIdStr) {

@@ -4,8 +4,8 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
-import com.kunals990.aichat.DTOs.AuthResponse;
 import com.kunals990.aichat.DTOs.TokenRequest;
+import com.kunals990.aichat.DTOs.UserDetailResponse;
 import com.kunals990.aichat.entity.User;
 import com.kunals990.aichat.repository.UserRepository;
 import com.kunals990.aichat.service.UserService;
@@ -17,12 +17,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -39,45 +39,77 @@ public class AuthController {
     @Value("${google.auth.client.id}")
     private String googleClientId;
 
-    @PostMapping("/google")
-    public ResponseEntity<?> googleLogin(@RequestBody TokenRequest tokenRequest, HttpServletResponse response) {
-        String idTokenString = tokenRequest.getToken();
+    @Value("${google.auth.client.secrets}")
+    private String googleClientSecret;
 
-        GoogleIdToken.Payload payload = verifyGoogleToken(idTokenString);
+    @Value("${google.auth.redirect.uri}")
+    private String googleRedirectUri;
+
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    @PostMapping("/google/callback")
+    public ResponseEntity<?> handleGoogleCallback(@RequestBody Map<String, String> body) {
+        String code = body.get("code");
+        if (code == null) {
+            return ResponseEntity.badRequest().body("Authorization code missing");
+        }
+
+        Map<String, String> params = new HashMap<>();
+        params.put("code", code);
+        params.put("client_id", googleClientId);
+        params.put("client_secret", googleClientSecret);
+        params.put("redirect_uri", googleRedirectUri);
+        params.put("grant_type", "authorization_code");
+
+        ResponseEntity<Map> tokenResponse = restTemplate.postForEntity(
+                "https://oauth2.googleapis.com/token",
+                params,
+                Map.class
+        );
+
+        if (!tokenResponse.getStatusCode().is2xxSuccessful()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Failed to exchange code");
+        }
+
+        String idToken = (String) tokenResponse.getBody().get("id_token");
+
+        GoogleIdToken.Payload payload = verifyGoogleToken(idToken);
         if (payload == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid ID token");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Google token");
         }
 
         String email = payload.getEmail();
         String name = (String) payload.get("name");
+        String picture = (String) payload.get("picture");
 
-        // Check or create user
+        // 3. Create or get user
+        User user = userRepository.findByEmail(email).orElseGet(() -> {
+            User newUser = new User();
+            newUser.setEmail(email);
+            newUser.setName(name);
+            newUser.setProvider("GOOGLE");
+            newUser.setProfile_photo(picture);
+            return userRepository.save(newUser);
+        });
 
+        // 4. Issue your own tokens
+        String accessToken = jwtUtil.generateAccessToken(email);
+        String refreshToken = jwtUtil.generateRefreshToken(email);
 
-        User user = userRepository.findByEmail(email)
-                    .orElseGet(() -> {
-                        User newUser = new User();
-                        newUser.setEmail(email);
-                        newUser.setName(name);
-                        newUser.setProvider("GOOGLE");
-                        return userRepository.save(newUser);
-                    });
+        ResponseCookie accessCookie = ResponseCookie.from("access_token", accessToken)
+                .httpOnly(true).secure(false).path("/").sameSite("Lax")
+                .maxAge(15 * 60) // 15 min
+                .build();
 
-
-        // Issue your JWT
-        String jwt = jwtUtil.generateToken(email);
-
-        ResponseCookie jwtCookie = ResponseCookie.from("access_token", jwt)
-                .httpOnly(true)
-                .secure(true) // true in production; false for local dev without HTTPS
-                .path("/")
-                .sameSite("None")
-                .maxAge(24 * 60 * 60) // 1 day
+        ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", refreshToken)
+                .httpOnly(true).secure(false).path("/").sameSite("Lax")
+                .maxAge(7 * 24 * 60 * 60) // 7 days
                 .build();
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
-                .body(new AuthResponse(jwt));
+                .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .body(Map.of("success", true));
     }
 
     private GoogleIdToken.Payload verifyGoogleToken(String idTokenString) {
@@ -96,20 +128,47 @@ public class AuthController {
         return null;
     }
 
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(@CookieValue("refresh_token") String refreshToken) {
+        if (jwtUtil.validateToken(refreshToken)) {
+            String email = jwtUtil.extractEmail(refreshToken);
+            String newAccessToken = jwtUtil.generateAccessToken(email);
+
+            ResponseCookie accessCookie = ResponseCookie.from("access_token", newAccessToken)
+                    .httpOnly(true).secure(false).path("/").sameSite("None")
+                    .maxAge(15 * 60)
+                    .build();
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+                    .body(Map.of("success", true));
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletResponse response) {
-        // Invalidate the cookie by setting Max-Age to 0
-        ResponseCookie deleteCookie = ResponseCookie.from("access_token", "")
+        ResponseCookie deleteAccess = ResponseCookie.from("access_token", "")
                 .httpOnly(true)
-                .secure(true) // or true if you're using HTTPS
+                .secure(true) // true in production
                 .path("/")
-                .sameSite("None")
-                .maxAge(0) // 👈 removes the cookie
+                .sameSite("Lax")
+                .maxAge(0) // expires immediately
                 .build();
 
-        response.addHeader("Set-Cookie", deleteCookie.toString());
+        ResponseCookie deleteRefresh = ResponseCookie.from("refresh_token", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .sameSite("Lax")
+                .maxAge(0)
+                .build();
 
-        return ResponseEntity.ok("Logged out");
+        response.addHeader(HttpHeaders.SET_COOKIE, deleteAccess.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, deleteRefresh.toString());
+
+        return ResponseEntity.ok(Map.of("success", true, "message", "Logged out successfully"));
     }
+
 
 }

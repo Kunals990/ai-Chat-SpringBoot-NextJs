@@ -18,6 +18,7 @@ public class User {
     private String email;
     private String name;
     private String provider;
+    private String profile_photo;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Session> sessions;

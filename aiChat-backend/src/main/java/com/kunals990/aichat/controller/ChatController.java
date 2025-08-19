@@ -1,5 +1,6 @@
 package com.kunals990.aichat.controller;
 
+import com.kunals990.aichat.DTOs.ChatRequest;
 import com.kunals990.aichat.entity.Chat;
 import com.kunals990.aichat.service.ChatService;
 import com.kunals990.aichat.service.SessionService;
@@ -27,8 +28,8 @@ public class ChatController {
 
 
     @PostMapping("/llm")
-    ResponseEntity<?> chatController(@RequestBody Chat chat) {
-        return chatService.getChat(chat);
+    ResponseEntity<?> chatController(@RequestBody ChatRequest chatRequest) {
+        return chatService.getChat(chatRequest);
     }
 
     @PostMapping("/all-chats")

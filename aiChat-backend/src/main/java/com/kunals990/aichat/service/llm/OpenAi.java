@@ -37,10 +37,10 @@ public class OpenAi implements LLM{
                 .model(ChatModel.GPT_4O_MINI)
                 .build();
 
-        // Call OpenAI API and get response
         ChatCompletion result = openAIClient.chat().completions().create(params);
 
         // Extract the AI's reply
+        System.out.println("This is openai");
         return result.choices().get(0).message().content().orElse("");
     }
 

@@ -61,7 +61,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         UsernamePasswordAuthenticationToken authToken =
                                 new UsernamePasswordAuthenticationToken(email, null, Collections.emptyList());
                         SecurityContextHolder.getContext().setAuthentication(authToken);
-//                        System.out.println("Authenticated via JWT");
                     }
                 }
             } catch (Exception e) {

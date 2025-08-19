@@ -22,7 +22,7 @@ export async function getSessions(): Promise<Session[] | null> {
 
     const data: Session[] = await response.json();
     console.log(data);
-    return data; // array of session objects
+    return data;
   } catch (error) {
     console.error('Error fetching sessions:', error);
     return null;

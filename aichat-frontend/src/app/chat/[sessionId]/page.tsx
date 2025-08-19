@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
-import { useChatStore } from '@/store/chatStore';
+import { useChatStore } from '@/stores/chatStore';
 import { useParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react'
 import Chat from '@/components/Chat';
@@ -9,13 +9,6 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { FloatingTrigger } from '@/components/FloatingTrigger';
 import Cookies from 'js-cookie';
 
-// DTO interface for backend response
-// interface SessionChatsResponse {
-//   message: string;
-//   role: 'USER' | 'ASSISTANT';
-//   LLM: string;
-//   timestamp: string;
-// }
 
 export default function SessionPage() {
     const params = useParams();
@@ -32,7 +25,7 @@ export default function SessionPage() {
         
         // Set the session ID in sessionStorage for the chat component
         sessionStorage.setItem('session_id', sessionId);
-    console.log("session id is:", sessionId);
+        console.log("session id is:", sessionId);
     
     // Add validation for sessionId format
     if (!sessionId || typeof sessionId !== 'string') {
