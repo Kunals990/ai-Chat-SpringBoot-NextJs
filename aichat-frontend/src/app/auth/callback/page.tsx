@@ -3,6 +3,7 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useAuthStore } from "@/stores/authStore";
+import { useChatStore } from "@/stores/chatStore";
 
 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080/api";
 
@@ -20,15 +21,14 @@ export default function GoogleCallback() {
         const res = await fetch(`${backendUrl}/auth/google/callback`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          credentials: "include", // 🔑 this lets backend set httpOnly cookies
+          credentials: "include", 
           body: JSON.stringify({ code }),
         });
 
         if (res.ok) {
-          // Backend has set cookies, now fetch user profile
           await fetchUser();
-
-          // Redirect to home (or dashboard)
+          sessionStorage.removeItem("session_id");
+          useChatStore.getState().clearMessages();
           router.push("/");
         } else {
           console.error("Failed to exchange Google code");

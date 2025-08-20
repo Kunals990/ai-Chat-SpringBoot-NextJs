@@ -49,7 +49,6 @@ export default function SessionsList() {
             }
         };
 
-        // Fetch once on mount / when auth changes
         fetchSessions();
         return () => {
             cancelled = true;

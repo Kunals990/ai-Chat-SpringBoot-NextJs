@@ -1,8 +1,11 @@
 "use client";
 import { useChatStore } from "@/stores/chatStore";
+import { MarkdownRenderer } from '@/components/MarkdownRenderer'
+import React from 'react'
 
 export default function ChatMessages() {
     const messages = useChatStore((s) => s.messages);
+    const MemoizedMarkdown = React.memo(MarkdownRenderer);
 
     return (
         <div className="flex flex-col space-y-3 p-4 overflow-y-auto h-[70vh]">
@@ -17,9 +20,9 @@ export default function ChatMessages() {
                             ? "bg-blue-500 text-white rounded-br-none"
                             : "bg-gray-200 text-gray-800 rounded-bl-none"}`}
                     >
-                        <p>{msg.content}</p>
+                        <MemoizedMarkdown content={msg.content} />
                         <span className="text-xs opacity-70 block mt-1">
-  {msg.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+  {new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
 </span>
                     </div>
                 </div>

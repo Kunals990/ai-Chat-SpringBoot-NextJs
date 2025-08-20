@@ -1,11 +1,13 @@
 import { create } from "zustand";
+import { useChatStore } from "./chatStore";
+import { useSessionStore } from "./sessionStore";
 
 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080/api';
 
 interface User {
     email: string;
     name: string;
-    picture?: string;
+    profile_photo?: string;
 }
 
 interface AuthState {
@@ -16,6 +18,7 @@ interface AuthState {
     setLoading: (loading: boolean) => void;
     logout: () => Promise<void>;
     fetchUser: () => Promise<void>;
+    refreshAccessToken:()=>Promise<boolean>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -33,6 +36,9 @@ export const useAuthStore = create<AuthState>((set) => ({
             credentials: "include",
         });
         set({ user: null, isAuthenticated: false });
+        sessionStorage.removeItem("session_id");
+        useChatStore.getState().clearMessages();
+        useSessionStore.getState().clearSessions();
     },
 
     fetchUser: async () => {
@@ -56,4 +62,22 @@ export const useAuthStore = create<AuthState>((set) => ({
             set({ loading: false });
         }
     },
+
+    refreshAccessToken: async () => {
+    try {
+        const res = await fetch(`${backendUrl}/auth/refresh`, {
+            method: "POST",
+            credentials: "include", 
+        });
+
+        if (!res.ok) {
+            throw new Error("Failed to refresh access token");
+        }
+
+        return true;
+    } catch (err) {
+        console.error("Refresh token failed:", err);
+        return false;
+    }
+},
 }));

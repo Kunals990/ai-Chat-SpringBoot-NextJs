@@ -7,10 +7,21 @@ import { useAuthStore } from "@/stores/authStore";
 import LoginPopup from "../LoginPopup";
 import {useLlmStore} from "@/stores/llmStore";
 import LlmSelector from "@/components/chat/LlmSelector";
+import { useRouter } from "next/navigation";
+import { fetchWithAuth } from "@/utils/fetchWithAuth"; 
 
 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080/api";
 
+interface Message {
+  id: string
+  content: string
+  role: 'user' | 'assistant'
+  timestamp: Date
+}
+
 export default function ChatInput() {
+    const router = useRouter(); 
+
     const [text, setText] = useState("");
     const [loading, setLoading] = useState(false);
     const [showLoginPopup, setShowLoginPopup] = useState(false);
@@ -32,12 +43,12 @@ export default function ChatInput() {
 
         const sessionId = sessionStorage.getItem("session_id") || (await createNewSession());
 
-        const userMessage = {
+        const userMessage: Message = {
             id: Date.now().toString(),
             content: text,
-            role: "user",
+            role: "user", 
             timestamp: new Date(),
-        };
+            };
         addMessage(userMessage);
 
         setLoading(true);
@@ -53,7 +64,7 @@ export default function ChatInput() {
                 session: { id: sessionId },
             };
 
-            const res = await fetch(`${backendUrl}/chat/llm`, {
+            const res = await fetchWithAuth(`${backendUrl}/chat/llm`, {
                 method: "POST",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
@@ -70,15 +81,8 @@ export default function ChatInput() {
                 role: "assistant",
                 timestamp: new Date(),
             });
+            router.push(`/chat/${sessionId}`);
 
-            if (!sessionStorage.getItem("session_id")) {
-                sessionStorage.setItem("session_id", sessionId);
-                addSessions({
-                    id: sessionId,
-                    sessionName: "New Chat",
-                    timestamp: new Date().toISOString(),
-                });
-            }
         } catch (err) {
             addMessage({
                 id: (Date.now() + 1).toString(),
@@ -93,12 +97,18 @@ export default function ChatInput() {
     };
 
     const createNewSession = async () => {
-        const res = await fetch(`${backendUrl}/chat/session`, {
+        const res = await fetchWithAuth(`${backendUrl}/chat/session`, {
             method: "POST",
             credentials: "include",
             headers: { "Content-Type": "application/json" },
         });
         const data = await res.json();
+        sessionStorage.setItem("session_id", data.id);
+        addSessions({
+            id: data.id,
+            sessionName: "New Chat",
+            timestamp: new Date().toISOString(),
+        });
         return data.id;
     };
 

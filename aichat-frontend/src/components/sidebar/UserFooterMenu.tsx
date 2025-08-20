@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 
 import {
     SidebarMenu,
@@ -13,11 +14,18 @@ import {
 } from "@/components/ui/dropdown-menu"; // shadcn import
 import { ChevronUp, Settings, LogOut, User2 } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
+import { useRouter } from "next/navigation";
 
 export default function UserFooterMenu() {
     const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
     const user = useAuthStore((s) => s.user);
     const logout = useAuthStore((s) => s.logout);
+    const router = useRouter();
+
+    const handleLogout = async () => {
+        await logout();
+        router.push("/");
+        };
 
     return (
         <SidebarMenu>
@@ -26,10 +34,12 @@ export default function UserFooterMenu() {
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <SidebarMenuButton className="h-12 px-3 hover:bg-gray-50 transition-colors rounded-lg">
-                                {user?.picture ? (
-                                    <img
-                                        src={user.picture}
-                                        alt={user.name || "User"}
+                                {user?.profile_photo ? (
+                                    <Image
+                                        src={user?.profile_photo || "/default-avatar.png"}
+                                        alt={user?.name || "User"}
+                                        width={24}
+                                        height={24}
                                         className="h-6 w-6 rounded-full object-cover"
                                     />
                                 ) : (
@@ -51,7 +61,7 @@ export default function UserFooterMenu() {
                                 <span className="text-gray-700">Settings</span>
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                                onClick={logout}
+                                onClick={handleLogout}
                                 className="px-4 py-3 text-sm hover:bg-red-50 cursor-pointer rounded-lg text-red-600 flex items-center gap-3 transition-colors"
                             >
                                 <LogOut className="h-4 w-4" />

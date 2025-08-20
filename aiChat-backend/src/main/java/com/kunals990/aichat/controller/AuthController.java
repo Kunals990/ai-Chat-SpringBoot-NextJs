@@ -81,7 +81,7 @@ public class AuthController {
         String email = payload.getEmail();
         String name = (String) payload.get("name");
         String picture = (String) payload.get("picture");
-
+        System.out.println("picture is "+picture);
         // 3. Create or get user
         User user = userRepository.findByEmail(email).orElseGet(() -> {
             User newUser = new User();
