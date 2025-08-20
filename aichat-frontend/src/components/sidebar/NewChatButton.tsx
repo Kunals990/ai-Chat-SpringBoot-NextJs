@@ -63,12 +63,12 @@ export default function NewChatButton() {
                 <SidebarMenuButton
                     onClick={handleNewChat}
                     disabled={isCreating}
-                    className="font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg h-10 transition-all duration-200 shadow-sm hover:shadow-md flex items-center gap-2"
+                    className="font-medium text-white hover:text-white  bg-[#123254] hover:bg-[#194676] disabled:opacity-50 disabled:cursor-not-allowed rounded-lg h-10 transition-all duration-200 shadow-sm hover:shadow-md flex items-center gap-2"
                 >
                     {isCreating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
                     {isCreating ? "Creating..." : "New Chat"}
                 </SidebarMenuButton>
             </SidebarMenuItem>
-        </SidebarMenu>
+        </SidebarMenu> 
     );
 }

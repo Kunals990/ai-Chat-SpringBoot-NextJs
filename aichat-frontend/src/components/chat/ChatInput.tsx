@@ -30,6 +30,7 @@ export default function ChatInput() {
     const addMessage = useChatStore((s) => s.addMessage);
     const addSessions = useSessionStore((s) => s.addSessions);
     const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+    const setIsAiTyping = useChatStore((s) => s.setIsAiTyping);
 
     const messages = useChatStore((s) => s.messages);
 
@@ -52,6 +53,7 @@ export default function ChatInput() {
         addMessage(userMessage);
 
         setLoading(true);
+        setIsAiTyping(true);
         setText("");
 
         try {
@@ -93,6 +95,7 @@ export default function ChatInput() {
             console.log(err);
         } finally {
             setLoading(false);
+            setIsAiTyping(false);
         }
     };
 
@@ -113,23 +116,56 @@ export default function ChatInput() {
     };
 
     return (
-        <div className="flex items-center border-t p-3">
-            <input
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
-                placeholder={isAuthenticated ? "Type a message..." : "Login to start chatting..."}
-                disabled={loading || !isAuthenticated}
-                className="flex-1 border rounded-lg px-3 py-2 mr-2"
-            />
-            <button
-                onClick={sendMessage}
-                disabled={!text.trim() || loading || !isAuthenticated}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg"
-            >
-                {loading ? "..." : <Send className="w-4 h-4" />}
-            </button>
-            <LlmSelector/>
+        <div className="fixed bottom-0 left-0 right-0 bg-transparent p-2">
+            <div className="max-w-4xl mx-auto">
+                <div className="relative bg-[#01172f]/50 backdrop-blur-md border border-white/20 rounded-3xl shadow-sm hover:shadow-md transition-shadow duration-200 p-4">
+                    {/* Model Selector inside the input box */}
+                    <div className="flex items-center mb-3">
+                        <LlmSelector/>
+                    </div>
+                    
+                    <div className="relative flex items-end">
+                        <textarea
+                            value={text}
+                            onChange={(e) => setText(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter" && !e.shiftKey) {
+                                    e.preventDefault();
+                                    sendMessage();
+                                }
+                            }}
+                            placeholder={isAuthenticated ? "Message AI..." : "Login to start chatting..."}
+                            disabled={loading || !isAuthenticated}
+                            rows={1}
+                            className="flex-1 bg-transparent border-none outline-none resize-none pr-12 py-2 text-white placeholder-gray-400 max-h-40 min-h-[40px] overflow-y-auto text-base"
+                            style={{ 
+                                scrollbarWidth: 'thin',
+                                scrollbarColor: '#cbd5e0 transparent'
+                            }}
+                            onInput={(e) => {
+                                const target = e.target as HTMLTextAreaElement;
+                                target.style.height = 'auto';
+                                target.style.height = Math.min(target.scrollHeight, 160) + 'px';
+                            }}
+                        />
+                        <button
+                            onClick={sendMessage}
+                            disabled={!text.trim() || loading || !isAuthenticated}
+                            className={`absolute right-0 bottom-0 p-2.5 rounded-full transition-all duration-200 ${
+                                text.trim() && !loading && isAuthenticated
+                                    ? 'bg-blue-600/80 text-white hover:bg-blue-700/90 shadow-sm backdrop-blur-sm'
+                                    : 'bg-gray-500/50 text-gray-500 cursor-not-allowed backdrop-blur-sm'
+                            }`}
+                        >
+                            {loading ? (
+                                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                                <Send className="w-4 h-4" />
+                            )}
+                        </button>
+                    </div>
+                </div>
+            </div>
             {/* Login Popup */}
             <LoginPopup isOpen={showLoginPopup} onClose={() => setShowLoginPopup(false)} />
         </div>

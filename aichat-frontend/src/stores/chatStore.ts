@@ -7,12 +7,11 @@ interface Message {
   timestamp: Date
 }
 
-// DTO interface for backend response
 interface SessionChatsResponse {
   message: string;
-  role: 'USER' | 'ASSISTANT'; // Backend uses uppercase
+  role: 'USER' | 'ASSISTANT'; 
   LLM: string;
-  timestamp: string; // LocalDateTime from backend comes as string
+  timestamp: string; 
 }
 
 interface ChatStore {
@@ -21,6 +20,8 @@ interface ChatStore {
   addMessage: (message: Message) => void;
   clearMessages: () => void;
   setMessagesFromResponse: (responses: SessionChatsResponse[]) => void;
+  isAiTyping: boolean;
+  setIsAiTyping: (typing: boolean) => void;
 }
 
 export const useChatStore = create<ChatStore>((set) => ({
@@ -37,4 +38,6 @@ export const useChatStore = create<ChatStore>((set) => ({
     }));
     set({ messages });
   },
+  isAiTyping: false,
+  setIsAiTyping: (typing: boolean) => set({ isAiTyping: typing }),
 }));

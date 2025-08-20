@@ -1,6 +1,5 @@
 "use client";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar";
 import { FloatingTrigger } from '@/components/FloatingTrigger';
 import React from 'react';
 import ChatPage from "@/components/chat/ChatPage";

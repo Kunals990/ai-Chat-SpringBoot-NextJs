@@ -71,7 +71,7 @@ export default function SessionsList() {
     }
 
     return (
-        <div className="max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+        <div className="max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-white scrollbar-track-transparent">
             <SidebarMenu className="space-y-1">
                 {loading ? (
                     <SidebarMenuItem>
@@ -87,26 +87,26 @@ export default function SessionsList() {
                         return (
                             <SidebarMenuItem key={session.id}>
                                 {isSelected ? (
-                                    <div className="bg-blue-600 text-white flex flex-col items-start p-3 rounded-lg shadow-sm">
+                                    <div className="bg-[#072546] text-[#f1f5f9] flex flex-col items-start p-3 rounded-lg shadow-sm">
                                         <div className="flex items-center gap-3 w-full">
-                                            <MessageSquare className="h-4 w-4 flex-shrink-0" />
+                                            <MessageSquare className="h-4 w-4 flex-shrink-0 text-[#f1f5f9]" />
                                             <span className="truncate font-medium">{session.sessionName}</span>
                                         </div>
-                                        <span className="text-xs text-blue-100 ml-7 mt-1">{dateStr}</span>
+                                        <span className="text-xs text-[#cbd5e1] ml-7 mt-1">{dateStr}</span>
                                     </div>
                                 ) : (
                                     <SidebarMenuButton asChild>
                                         <Link
                                             href={`/chat/${session.id}`}
-                                            className="flex flex-col items-start p-3 hover:bg-gray-50 transition-colors rounded-lg group w-full"
+                                            className="flex flex-col items-start p-3 rounded-lg transition-colors group w-full 
+                                                       text-[#94a3b8] hover:bg-[#051C35] hover:text-[#f1f5f9]"
                                         >
                                             <div className="flex items-center gap-3 w-full">
-                                                <MessageSquare className="h-4 w-4 flex-shrink-0 text-gray-400 group-hover:text-gray-600" />
-                                                <span className="truncate text-gray-700 group-hover:text-gray-900">
-                          {session.sessionName}
-                        </span>
+                                                <span className="truncate">{session.sessionName}</span>
                                             </div>
-                                            <span className="text-xs text-gray-400 ml-7 mt-1">{dateStr}</span>
+                                            <span className="text-xs ml-7 mt-1 text-[#94a3b8] hover:text-[#f1f5f9]">
+                                                {dateStr}
+                                            </span>
                                         </Link>
                                     </SidebarMenuButton>
                                 )}
