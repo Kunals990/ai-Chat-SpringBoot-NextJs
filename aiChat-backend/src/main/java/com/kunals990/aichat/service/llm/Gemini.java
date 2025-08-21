@@ -26,7 +26,6 @@ public class Gemini implements LLM{
     public String getResponse(String chat) {
         GenerateContentResponse response =
                 client.models.generateContent("gemini-2.0-flash", chat, null);
-        System.out.println("This is gemini");
         return response.text();
     }
 

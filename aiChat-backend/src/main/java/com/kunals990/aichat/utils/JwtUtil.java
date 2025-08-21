@@ -16,6 +16,9 @@ public class JwtUtil {
     private final SecretKey secretKey;
 
     public JwtUtil(@Value("${jwt.secret}") String secretKeyString) {
+        if (secretKeyString == null || secretKeyString.isBlank()) {
+            throw new IllegalStateException("JWT secret is missing! Please set jwt.secret in application.properties or .env");
+        }
         this.secretKey = Keys.hmacShaKeyFor(secretKeyString.getBytes());
     }
 
@@ -25,7 +28,7 @@ public class JwtUtil {
                 .setSubject(email)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 15 * 60 * 1000)) // 15 min
-                .signWith(SignatureAlgorithm.HS256, secretKey)
+                .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
     }
 

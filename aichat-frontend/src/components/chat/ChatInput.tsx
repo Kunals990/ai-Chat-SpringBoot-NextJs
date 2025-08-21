@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import {  useState } from "react";
 import { Send } from "lucide-react";
 import { useChatStore } from "@/stores/chatStore";
 import { useSessionStore } from "@/stores/sessionStore";
@@ -31,6 +31,9 @@ export default function ChatInput() {
     const addSessions = useSessionStore((s) => s.addSessions);
     const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
     const setIsAiTyping = useChatStore((s) => s.setIsAiTyping);
+    const remainingMessages = useChatStore((s)=>s.remainingMessages);
+    const setRemainingMessages = useChatStore((s)=>s.setRemainingMessages);
+
 
     const messages = useChatStore((s) => s.messages);
 
@@ -41,7 +44,9 @@ export default function ChatInput() {
             setShowLoginPopup(true);
             return;
         }
-
+        if(remainingMessages==0) {
+            throw { type: "RATE_LIMIT", message: "Your daily message limit is exhausted. Please try again tomorrow." };
+        }
         const sessionId = sessionStorage.getItem("session_id") || (await createNewSession());
 
         const userMessage: Message = {
@@ -72,11 +77,15 @@ export default function ChatInput() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
             });
-
-            if (!res.ok) throw new Error("Failed to send message");
-
-            const data = await res.json();
-
+            if (res.status === 429) {
+                throw { type: "RATE_LIMIT", message: "Your daily message limit is exhausted. Please try again tomorrow." };
+            }
+            if (!res.ok) {
+                throw { type: "GENERIC", message: "Failed to send message." };
+            }
+            const totalData = await res.json();
+            const data = totalData.chat;
+            const msgRemain = totalData.remaining;
             addMessage({
                 id: (Date.now() + 1).toString(),
                 content: data.message,
@@ -85,14 +94,25 @@ export default function ChatInput() {
             });
             router.push(`/chat/${sessionId}`);
 
-        } catch (err) {
+            if(totalData.remaining!=undefined){
+                setRemainingMessages(msgRemain);
+            }
+            console.log(msgRemain);
+
+        } catch (err:any) {
+            let userMessage = "⚠️ Error talking to server. Try again.";
+
+            if (err.type === "RATE_LIMIT") {
+                userMessage = err.message;
+            }
+
             addMessage({
                 id: (Date.now() + 1).toString(),
-                content: "⚠️ Error talking to server. Try again.",
+                content: userMessage,
                 role: "assistant",
                 timestamp: new Date(),
             });
-            console.log(err);
+            console.log(userMessage);
         } finally {
             setLoading(false);
             setIsAiTyping(false);

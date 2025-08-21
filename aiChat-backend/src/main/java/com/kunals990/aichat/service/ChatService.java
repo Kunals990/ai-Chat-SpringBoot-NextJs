@@ -26,6 +26,9 @@ public class ChatService {
     private final ChatRepository chatRepository;
 
     @Autowired
+    private RateLimiterService rateLimiterService;
+
+    @Autowired
     public ChatService(List<LLM> llmList, SessionRepository sessionRepository, ChatRepository chatRepository) {
         for (LLM llm : llmList) {
             String key = llm.getClass().getSimpleName().toLowerCase();
@@ -49,7 +52,14 @@ public class ChatService {
             return ResponseEntity.badRequest().body("Session not found");
         }
 
-        log.info("Using LLM: {}", llmKey);
+        String userId= session.getUser().getEmail();
+        boolean allowed = rateLimiterService.isAllowed(userId);
+        int remaining = rateLimiterService.getRemaining(userId);
+
+        if (!allowed) {
+            return ResponseEntity.status(429).body("Rate limit exceeded. Try again tomorrow.");
+        }
+
         List<ChatRequest.MessageDTO> messages = chatRequest.getMessages();
         ChatRequest.MessageDTO lastUserMessage = messages.get(messages.size() - 1);
         String prompt = buildPrompt(messages);
@@ -90,7 +100,10 @@ public class ChatService {
         chatResponse.setTimestamp(LocalDateTime.now().toString());
 
 
-        return ResponseEntity.ok(chatResponse);
+        return ResponseEntity.ok(Map.of(
+                "chat", chatResponse,
+                "remaining", remaining
+        ));
     }
 
     private String buildPrompt(List<ChatRequest.MessageDTO> messages) {

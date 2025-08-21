@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { useChatStore } from "./chatStore";
 import { useSessionStore } from "./sessionStore";
+import { fetchWithAuth } from "@/utils/fetchWithAuth";
 
 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080/api';
 
@@ -44,7 +45,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     fetchUser: async () => {
         set({ loading: true });
         try {
-            const res = await fetch(`${backendUrl}/user/me`, {
+            const res = await fetchWithAuth(`${backendUrl}/user/me`, {
                 credentials: "include",
             });
 
@@ -73,7 +74,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         if (!res.ok) {
             throw new Error("Failed to refresh access token");
         }
-
+        
         return true;
     } catch (err) {
         console.error("Refresh token failed:", err);

@@ -22,6 +22,8 @@ interface ChatStore {
   setMessagesFromResponse: (responses: SessionChatsResponse[]) => void;
   isAiTyping: boolean;
   setIsAiTyping: (typing: boolean) => void;
+  remainingMessages:number|null;
+  setRemainingMessages:(remaining:number)=>void;
 }
 
 export const useChatStore = create<ChatStore>((set) => ({
@@ -40,4 +42,6 @@ export const useChatStore = create<ChatStore>((set) => ({
   },
   isAiTyping: false,
   setIsAiTyping: (typing: boolean) => set({ isAiTyping: typing }),
+  remainingMessages: null,
+  setRemainingMessages: (remaining) => set({ remainingMessages: remaining }),
 }));

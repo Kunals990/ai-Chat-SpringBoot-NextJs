@@ -8,6 +8,7 @@ import ChatMessages from "@/components/chat/ChatMessages";
 import ChatInput from "@/components/chat/ChatInput";
 import { useChatStore } from "@/stores/chatStore";
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
+import RemainingMessagesAlert from "@/components/chat/RemainingMessagesAlert";
 
 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080/api";
 
@@ -74,6 +75,7 @@ export default function SessionPage() {
             <FloatingTrigger />
             <div className="flex flex-col h-screen">
               <ChatMessages />
+              <RemainingMessagesAlert />
               <ChatInput />
             </div>
           </main>

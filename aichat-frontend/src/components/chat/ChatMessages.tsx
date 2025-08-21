@@ -4,7 +4,7 @@ import { MarkdownRenderer } from '@/components/MarkdownRenderer'
 import React, { useEffect, useRef, useState } from 'react'
 import { Copy, Check, ChevronDown } from 'lucide-react'
 
-// Typing indicator component
+
 const TypingIndicator = () => {
     return (
         <div className="flex justify-start">
@@ -39,7 +39,6 @@ export default function ChatMessages() {
         scrollToBottom();
     }, [messages, isAiTyping]);
 
-    // Handle scroll to show/hide scroll to bottom button
     const handleScroll = () => {
         if (messagesContainerRef.current) {
             const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
@@ -52,7 +51,7 @@ export default function ChatMessages() {
         try {
             await navigator.clipboard.writeText(content);
             setCopiedMessageId(messageId);
-            setTimeout(() => setCopiedMessageId(null), 2000); // Reset after 2 seconds
+            setTimeout(() => setCopiedMessageId(null), 2000); 
         } catch (err) {
             console.error('Failed to copy text: ', err);
         }
@@ -62,7 +61,7 @@ export default function ChatMessages() {
         <div className="relative h-[100vh] bg-[#01172f]">
             <div 
                 ref={messagesContainerRef}
-                className="flex flex-col space-y-3 p-4 pb-32 overflow-y-auto h-full custom-scrollbar"
+                className="flex flex-col space-y-3 p-4 pb-48 overflow-y-auto h-full custom-scrollbar"
                 onScroll={handleScroll}
             >
                 {messages.map((msg) => (

@@ -4,8 +4,6 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
-import com.kunals990.aichat.DTOs.TokenRequest;
-import com.kunals990.aichat.DTOs.UserDetailResponse;
 import com.kunals990.aichat.entity.User;
 import com.kunals990.aichat.repository.UserRepository;
 import com.kunals990.aichat.service.UserService;
@@ -81,8 +79,6 @@ public class AuthController {
         String email = payload.getEmail();
         String name = (String) payload.get("name");
         String picture = (String) payload.get("picture");
-        System.out.println("picture is "+picture);
-        // 3. Create or get user
         User user = userRepository.findByEmail(email).orElseGet(() -> {
             User newUser = new User();
             newUser.setEmail(email);
@@ -98,7 +94,7 @@ public class AuthController {
 
         ResponseCookie accessCookie = ResponseCookie.from("access_token", accessToken)
                 .httpOnly(true).secure(false).path("/").sameSite("Lax")
-                .maxAge(15 * 60) // 15 min
+                .maxAge(6 *60 * 60) // 6 hours
                 .build();
 
         ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", refreshToken)
@@ -135,7 +131,7 @@ public class AuthController {
             String newAccessToken = jwtUtil.generateAccessToken(email);
 
             ResponseCookie accessCookie = ResponseCookie.from("access_token", newAccessToken)
-                    .httpOnly(true).secure(false).path("/").sameSite("None")
+                    .httpOnly(true).secure(false).path("/").sameSite("Lax")
                     .maxAge(15 * 60)
                     .build();
 

@@ -11,7 +11,7 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"; // shadcn import
+} from "@/components/ui/dropdown-menu"; 
 import { ChevronUp, Settings, LogOut, User2 } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { useRouter } from "next/navigation";
@@ -56,9 +56,11 @@ export default function UserFooterMenu() {
                             side="top"
                             className="w-[--radix-popper-anchor-width] bg-[#0B2D52] border border-gray-200 rounded-xl shadow-lg p-2 min-w-[200px]"
                         >
-                            <DropdownMenuItem className="px-4 py-3 text-sm cursor-pointer rounded-lg transition-colors flex items-center gap-3">
-                                <Settings className="h-4 w-4 text-white" />
-                                <span className="text-white hover:text-black">Settings</span>
+                            <DropdownMenuItem
+                                className="px-4 py-3 text-sm hover:bg-[#01172f] cursor-pointer rounded-lg text-white flex items-center gap-3 transition-colors "
+                            >
+                                <Settings className="h-4 w-4" />
+                                <span>Settings</span>
                             </DropdownMenuItem>
                             <DropdownMenuItem
                                 onClick={handleLogout}

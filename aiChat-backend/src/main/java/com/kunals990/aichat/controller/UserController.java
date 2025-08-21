@@ -26,7 +26,7 @@ public class UserController {
 
         String email = authentication.getName();
         User user = userRepository.findByEmail(email).orElseThrow();
-
+        System.out.println(user.getProfile_photo());
         return ResponseEntity.ok(new UserDetailResponse(
                 user.getEmail(),
                 user.getName(),

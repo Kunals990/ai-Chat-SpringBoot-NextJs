@@ -39,8 +39,6 @@ public class OpenAi implements LLM{
 
         ChatCompletion result = openAIClient.chat().completions().create(params);
 
-        // Extract the AI's reply
-        System.out.println("This is openai");
         return result.choices().get(0).message().content().orElse("");
     }
 
