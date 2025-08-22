@@ -1,6 +1,6 @@
 services:
   app:
-    image: kunals99/aichat-backend:latest  # Replace with your actual Docker Hub image name
+    image: kunals99/aichat-backend:latest
     ports:
       - "8080:8080"
     environment:
