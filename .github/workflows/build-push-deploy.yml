@@ -1,0 +1,64 @@
+name: Build, Push, and Deploy Backend
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'aiChat-backend/**'
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/chat-backend
+  CONTAINER_NAME: my-app-container
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./aiChat-backend
+          file: ./aiChat-backend/Dockerfile
+          push: true
+          tags: ${{ env.IMAGE_NAME }}:latest
+
+  deploy:
+    # This job will only run after 'build-and-push' is successful
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # Navigate to the project directory
+            cd ~/chat-backend
+
+            # Pull the latest image from Docker Hub
+            docker pull ${{ env.IMAGE_NAME }}:latest
+
+            # Stop the running container if it exists
+            docker stop ${{ env.CONTAINER_NAME }} || true
+
+            # Remove the old container if it exists
+            docker rm ${{ env.CONTAINER_NAME }} || true
+
+            # Run the new container from the latest image, using the existing .env file
+            docker run -d -p 8080:8080 --env-file ./.env --name ${{ env.CONTAINER_NAME }} ${{ env.IMAGE_NAME }}:latest
+            
+            # (Optional but recommended) Clean up old, unused Docker images
+            docker image prune -f
