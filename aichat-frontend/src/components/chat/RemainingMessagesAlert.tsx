@@ -22,7 +22,7 @@ export default function RemainingMessagesAlert() {
     }
 
     return (
-        <div className="fixed bottom-3 left-0 right-0 z-10">
+        <div className="fixed bottom-10 left-0 right-0 z-10">
             <div className="max-w-4xl mx-auto px-2">
                 <div className="bg-amber-500/20 backdrop-blur-md border border-amber-400/30 rounded-xl p-3 mx-auto max-w-md">
                     <div className="flex items-center justify-between">
