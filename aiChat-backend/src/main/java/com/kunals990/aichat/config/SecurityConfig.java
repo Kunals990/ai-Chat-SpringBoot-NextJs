@@ -47,7 +47,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(List.of("https://ai-chat-91.vercel.app","http://localhost:3000")); // ✅ Your frontend URL
+        configuration.setAllowedOrigins(List.of("https://ai-chat-91.vercel.app","http://localhost:3000","https://chat.kunalsable.com")); // ✅ Your frontend URL
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true); // ✅ Required for cookies/auth headers

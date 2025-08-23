@@ -93,12 +93,12 @@ public class AuthController {
         String refreshToken = jwtUtil.generateRefreshToken(email);
 
         ResponseCookie accessCookie = ResponseCookie.from("access_token", accessToken)
-                .httpOnly(true).secure(false).path("/").sameSite("Lax")
+                .httpOnly(true).secure(true).path("/").sameSite("None")
                 .maxAge(6 *60 * 60) // 6 hours
                 .build();
 
         ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", refreshToken)
-                .httpOnly(true).secure(false).path("/").sameSite("Lax")
+                .httpOnly(true).secure(true).path("/").sameSite("None")
                 .maxAge(7 * 24 * 60 * 60) // 7 days
                 .build();
 
@@ -131,7 +131,7 @@ public class AuthController {
             String newAccessToken = jwtUtil.generateAccessToken(email);
 
             ResponseCookie accessCookie = ResponseCookie.from("access_token", newAccessToken)
-                    .httpOnly(true).secure(false).path("/").sameSite("Lax")
+                    .httpOnly(true).secure(true).path("/").sameSite("None")
                     .maxAge(15 * 60)
                     .build();
 
@@ -148,7 +148,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(true) // true in production
                 .path("/")
-                .sameSite("Lax")
+                .sameSite("None")
                 .maxAge(0) // expires immediately
                 .build();
 
@@ -156,7 +156,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
-                .sameSite("Lax")
+                .sameSite("None")
                 .maxAge(0)
                 .build();
 
