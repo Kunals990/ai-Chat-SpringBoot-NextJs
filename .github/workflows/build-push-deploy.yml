@@ -9,7 +9,7 @@ on:
 
 env:
   IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/chat-backend
-  CONTAINER_NAME: my-app-container
+  CONTAINER_NAME: my-ai-chat
 
 jobs:
   build-and-push:
