@@ -71,7 +71,7 @@ export default function ChatInput() {
                 session: { id: sessionId },
             };
 
-            const res = await fetchWithAuth(`${backendUrl}/chat/llm`, {
+            const res = await fetchWithAuth(`/api/chat/llm`, {
                 method: "POST",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
@@ -120,7 +120,7 @@ export default function ChatInput() {
     };
 
     const createNewSession = async () => {
-        const res = await fetchWithAuth(`${backendUrl}/chat/session`, {
+        const res = await fetchWithAuth(`/api/chat/session`, {
             method: "POST",
             credentials: "include",
             headers: { "Content-Type": "application/json" },

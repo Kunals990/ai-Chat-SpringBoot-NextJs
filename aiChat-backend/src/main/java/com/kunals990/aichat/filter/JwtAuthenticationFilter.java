@@ -1,7 +1,5 @@
 package com.kunals990.aichat.filter;
 
-import com.kunals990.aichat.entity.User;
-import com.kunals990.aichat.service.UserService;
 import com.kunals990.aichat.utils.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -10,12 +8,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Optional;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -24,9 +23,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private JwtUtil jwtUtil;
 
     @Autowired
-    private UserService userService;
-
-
+    private UserDetailsService userDetailsService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -34,14 +31,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = null;
 
-        // 🔹 1. Check Authorization header
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            token = authHeader.substring(7);
-        }
-
-        // 🔹 2. If no header token, check HttpOnly cookie
-        if (token == null && request.getCookies() != null) {
+        if (request.getCookies() != null) {
             for (var cookie : request.getCookies()) {
                 if ("access_token".equals(cookie.getName())) {
                     token = cookie.getValue();
@@ -50,25 +40,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
 
-        // 🔒 3. Validate and authenticate if token found
-        if (token != null) {
+        if (token != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
-                if (jwtUtil.validateToken(token)) {
-                    String email = jwtUtil.extractEmail(token);
+                String email = jwtUtil.extractEmail(token);
+                if (email != null) {
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
-                    Optional<User> user = userService.findByEmail(email);
-                    if (user.isPresent()) {
+                    if (jwtUtil.validateToken(token)) {
+
                         UsernamePasswordAuthenticationToken authToken =
-                                new UsernamePasswordAuthenticationToken(email, null, Collections.emptyList());
+                                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+                        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(authToken);
                     }
                 }
             } catch (Exception e) {
-                System.out.println("JWT validation failed: " + e.getMessage());
+                logger.error("Cannot set user authentication: {}", e);
             }
         }
 
         filterChain.doFilter(request, response);
     }
-
 }

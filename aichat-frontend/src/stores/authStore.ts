@@ -32,7 +32,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     setLoading: (loading) => set({ loading }),
 
     logout: async () => {
-        await fetch(`${backendUrl}/auth/logout`, {
+        await fetch(`/api/auth/logout`, {
             method: "POST",
             credentials: "include",
         });
@@ -45,7 +45,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     fetchUser: async () => {
         set({ loading: true });
         try {
-            const res = await fetchWithAuth(`${backendUrl}/user/me`, {
+            const res = await fetchWithAuth(`/api/user/me`, {
                 credentials: "include",
             });
 
@@ -66,7 +66,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     refreshAccessToken: async () => {
     try {
-        const res = await fetch(`${backendUrl}/auth/refresh`, {
+        const res = await fetch(`/api/auth/refresh`, {
             method: "POST",
             credentials: "include", 
         });

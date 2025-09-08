@@ -9,7 +9,7 @@ interface Session {
 export async function getSessions(): Promise<Session[] | null> {
   try {
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-    const response = await fetchWithAuth(`${backendUrl}/chat/getSession`, {
+    const response = await fetchWithAuth('/api/chat/getSession', {
       method: 'POST',
       credentials: 'include', 
       headers: {

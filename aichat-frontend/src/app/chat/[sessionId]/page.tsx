@@ -38,7 +38,7 @@ export default function SessionPage() {
 
     const loadMessages = async () => {
       try {
-        const res = await fetchWithAuth(`${backendUrl}/chat/all-chats`, {
+        const res = await fetchWithAuth(`/api/chat/all-chats`, {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },

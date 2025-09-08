@@ -18,7 +18,7 @@ export default function GoogleCallback() {
 
     const exchangeCode = async () => {
       try {
-        const res = await fetch(`${backendUrl}/auth/google/callback`, {
+        const res = await fetch(`/api/auth/google/callback`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include", 
