@@ -2,9 +2,7 @@
 
 export const sendTokenToBackend = async (idToken: string) => {
   try {
-    // Use environment variable for backend URL
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-    // console.log("ID token is "+ idToken);
+
     const response = await fetch(`/api/auth/google`, {
       method: 'POST',
       credentials:"include",
@@ -31,7 +29,6 @@ export const sendTokenToBackend = async (idToken: string) => {
 export const logout = async()=>{
   if (typeof window !== 'undefined'){
     try{
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
       const response = await fetch(`/api/auth/logout`, {
       method: 'POST',
       credentials:"include",

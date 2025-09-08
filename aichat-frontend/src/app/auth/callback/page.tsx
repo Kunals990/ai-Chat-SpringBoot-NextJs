@@ -5,8 +5,6 @@ import { useEffect } from "react";
 import { useAuthStore } from "@/stores/authStore";
 import { useChatStore } from "@/stores/chatStore";
 
-const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080/api";
-
 export default function GoogleCallback() {
   const searchParams = useSearchParams();
   const router = useRouter();

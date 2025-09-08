@@ -10,8 +10,6 @@ import LlmSelector from "@/components/chat/LlmSelector";
 import { useRouter } from "next/navigation";
 import { fetchWithAuth } from "@/utils/fetchWithAuth"; 
 
-const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080/api";
-
 interface Message {
   id: string
   content: string

@@ -10,8 +10,6 @@ import { useChatStore } from "@/stores/chatStore";
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
 import RemainingMessagesAlert from "@/components/chat/RemainingMessagesAlert";
 
-const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080/api";
-
 function parseBackendTimestamp(ts: any): Date {
   if (Array.isArray(ts) && ts.length >= 7) {
     const [y, m, d, h, min, s, ns] = ts;
