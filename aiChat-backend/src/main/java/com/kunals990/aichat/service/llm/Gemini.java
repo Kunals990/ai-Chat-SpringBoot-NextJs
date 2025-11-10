@@ -25,7 +25,7 @@ public class Gemini implements LLM{
     @Override
     public String getResponse(String chat) {
         GenerateContentResponse response =
-                client.models.generateContent("gemini-2.0-flash", chat, null);
+                client.models.generateContent("gemini-2.5-flash", chat, null);
         return response.text();
     }
 
