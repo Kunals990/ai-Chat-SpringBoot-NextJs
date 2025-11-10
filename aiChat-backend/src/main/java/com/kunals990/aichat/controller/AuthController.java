@@ -20,6 +20,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -47,6 +48,17 @@ public class AuthController {
 
     @PostMapping("/google/callback")
     public ResponseEntity<?> handleGoogleCallback(@RequestBody Map<String, String> body) {
+
+        List<String> allowedRedirects = List.of(
+                "https://ai-chat-91.vercel.app/api/auth/google/callback",
+                "https://ai-chat.kunalsable.com/api/auth/google/callback"
+        );
+
+        String redirectUri = body.get("redirect_uri");
+        if (redirectUri == null || !allowedRedirects.contains(redirectUri)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid redirect URI");
+        }
+
         String code = body.get("code");
         if (code == null) {
             return ResponseEntity.badRequest().body("Authorization code missing");
@@ -56,7 +68,7 @@ public class AuthController {
         params.put("code", code);
         params.put("client_id", googleClientId);
         params.put("client_secret", googleClientSecret);
-        params.put("redirect_uri", googleRedirectUri);
+        params.put("redirect_uri", redirectUri);
         params.put("grant_type", "authorization_code");
 
         ResponseEntity<Map> tokenResponse = restTemplate.postForEntity(

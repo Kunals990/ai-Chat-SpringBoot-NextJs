@@ -20,7 +20,7 @@ export default function GoogleCallback() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include", 
-          body: JSON.stringify({ code }),
+          body: JSON.stringify({ code, redirect_uri: window.location.origin + "/api/auth/google/callback" }),
         });
 
         if (res.ok) {
