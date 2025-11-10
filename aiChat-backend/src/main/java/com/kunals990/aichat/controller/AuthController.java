@@ -50,8 +50,8 @@ public class AuthController {
     public ResponseEntity<?> handleGoogleCallback(@RequestBody Map<String, String> body) {
 
         List<String> allowedRedirects = List.of(
-                "https://ai-chat-91.vercel.app/api/auth/google/callback",
-                "https://ai-chat.kunalsable.com/api/auth/google/callback"
+                "https://ai-chat-91.vercel.app/auth/callback",
+                "https://ai-chat.kunalsable.com/auth/callback"
         );
 
         String redirectUri = body.get("redirect_uri");
