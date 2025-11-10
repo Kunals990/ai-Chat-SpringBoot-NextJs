@@ -44,12 +44,19 @@ public class AuthController {
     @Value("${google.auth.redirect.uri}")
     private String googleRedirectUri;
 
+    @Value("${cookie.secure}")
+    private boolean cookieSecure;
+
+    @Value("${cookie.samesite}")
+    private String cookieSameSite;
+
     private final RestTemplate restTemplate = new RestTemplate();
 
     @PostMapping("/google/callback")
     public ResponseEntity<?> handleGoogleCallback(@RequestBody Map<String, String> body) {
 
         List<String> allowedRedirects = List.of(
+                "http://localhost:3000/auth/callback",
                 "https://ai-chat-91.vercel.app/auth/callback",
                 "https://ai-chat.kunalsable.com/auth/callback"
         );
@@ -105,12 +112,12 @@ public class AuthController {
         String refreshToken = jwtUtil.generateRefreshToken(email);
 
         ResponseCookie accessCookie = ResponseCookie.from("access_token", accessToken)
-                .httpOnly(true).secure(true).path("/").sameSite("None")
+                .httpOnly(true).secure(cookieSecure).path("/").sameSite(cookieSameSite)
                 .maxAge(6 *60 * 60) // 6 hours
                 .build();
 
         ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", refreshToken)
-                .httpOnly(true).secure(true).path("/").sameSite("None")
+                .httpOnly(true).secure(cookieSecure).path("/").sameSite(cookieSameSite)
                 .maxAge(7 * 24 * 60 * 60) // 7 days
                 .build();
 
@@ -143,7 +150,7 @@ public class AuthController {
             String newAccessToken = jwtUtil.generateAccessToken(email);
 
             ResponseCookie accessCookie = ResponseCookie.from("access_token", newAccessToken)
-                    .httpOnly(true).secure(true).path("/").sameSite("None")
+                    .httpOnly(true).secure(cookieSecure).path("/").sameSite(cookieSameSite)
                     .maxAge(15 * 60)
                     .build();
 
@@ -158,17 +165,17 @@ public class AuthController {
     public ResponseEntity<?> logout(HttpServletResponse response) {
         ResponseCookie deleteAccess = ResponseCookie.from("access_token", "")
                 .httpOnly(true)
-                .secure(true) // true in production
+                .secure(cookieSecure) // true in production
                 .path("/")
-                .sameSite("None")
+                .sameSite(cookieSameSite)
                 .maxAge(0) // expires immediately
                 .build();
 
         ResponseCookie deleteRefresh = ResponseCookie.from("refresh_token", "")
                 .httpOnly(true)
-                .secure(true)
+                .secure(cookieSecure)
                 .path("/")
-                .sameSite("None")
+                .sameSite(cookieSameSite)
                 .maxAge(0)
                 .build();
 
