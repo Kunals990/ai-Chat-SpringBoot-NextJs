@@ -12,7 +12,7 @@ public class CorsConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("https://ai-chat-91.vercel.app","http://localhost:3000","https://chat.kunalsable.com")
+                .allowedOrigins("https://ai-chat-91.vercel.app","http://localhost:3000","https://ai-chat.kunalsable.com")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true);
