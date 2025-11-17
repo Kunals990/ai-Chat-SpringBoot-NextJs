@@ -16,26 +16,35 @@ public class RateLimiterService {
     }
 
     public boolean isAllowed(String userId) {
-        String today = LocalDate.now().toString(); // e.g., 2025-08-21
-        String key = "user:" + userId + ":messages:" + today;
+        try {
+            String today = LocalDate.now().toString();
+            String key = "user:" + userId + ":messages:" + today;
 
-        Long count = redisTemplate.opsForValue().increment(key);
+            Long count = redisTemplate.opsForValue().increment(key);
 
-        if (count != null && count == 1) {
-            redisTemplate.expire(key, Duration.ofDays(1));
+            if (count != null && count == 1) {
+                redisTemplate.expire(key, Duration.ofDays(1));
+            }
+            return count != null && count <= DAILY_LIMIT;
+        } catch (Exception e) {
+            System.err.println("Redis unavailable, skipping rate limit check: " + e.getMessage());
+            return true; // Fail open
         }
-
-        return count != null && count <= DAILY_LIMIT;
     }
 
     public int getRemaining(String userId) {
-        String today = LocalDate.now().toString();
-        String key = "user:" + userId + ":messages:" + today;
+        try {
+            String today = LocalDate.now().toString();
+            String key = "user:" + userId + ":messages:" + today;
 
-        String value = redisTemplate.opsForValue().get(key);
-        int count = (value != null) ? Integer.parseInt(value) : 0;
+            String value = redisTemplate.opsForValue().get(key);
+            int count = (value != null) ? Integer.parseInt(value) : 0;
 
-        return Math.max(DAILY_LIMIT - count, 0);
+            return Math.max(DAILY_LIMIT - count, 0);
+        } catch (Exception e) {
+            System.err.println("Redis unavailable, returning full quota as fallback");
+            return DAILY_LIMIT; // Fail open
+        }
     }
 
 }
